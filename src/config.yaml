@@ -1,0 +1,44 @@
+# 数据集配置
+datasets:
+  - name: "WikiText-103"
+    hf_path: "wikitext"
+    hf_name: "wikitext-103-raw-v1"
+    local_path: "data\\wikitext-103-raw-v1"
+  
+  - name: "C4 (Colossal Cleaned Crawled Corpus)"
+    hf_path: "c4"  # 使用正确的标识符
+    hf_name: "en"
+    # 或者使用完整的标识符
+    # hf_path: "allenai/c4"
+    # hf_name: "en"
+  
+  - name: "BookCorpus"
+    hf_path: "bookcorpus"  # 使用正确的标识符
+    hf_name: null
+  
+  - name: "OpenWebText"
+    hf_path: "openwebtext"  # 使用正确的标识符
+    hf_name: null
+  
+  - name: "The Pile"
+    hf_path: "EleutherAI/pile"  # 使用正确的标识符
+    hf_name: null
+
+# 模型配置
+models:
+  - name: "Qwen"
+    model_name: "Qwen/Qwen2-7B-Instruct"
+    local_path: "models\\Qwen2-7B-Instruct"  # 改为相对路径
+    trust_remote_code: true
+  
+  - name: "DeepSeek"
+    model_name: "deepseek-ai/deepseek-coder-6.7b-instruct"
+    local_path: "models\\deepseek-coder-6.7b-instruct"  # 改为相对路径
+  
+  - name: "智谱 (ChatGLM)"
+    model_name: "zai-org/chatglm3-6b"
+    local_path: "models\\chatglm-6b" 
+    trust_remote_code: true
+  
+  - name: "全部模型"
+    is_all_option: true
