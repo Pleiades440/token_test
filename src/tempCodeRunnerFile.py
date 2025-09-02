@@ -1,3 +1,4 @@
+import math
 import yaml
 import os
 
@@ -10,16 +11,17 @@ class TrainingTimeEstimator:
         # 默认使用华为昇腾910B显卡
         self.default_gpu = "华为昇腾910B"
         
-        # 效率因子
+        # 效率因子 (考虑通信开销、数据加载等)
         self.efficiency_factors = {
-            "single": 0.95,
-            "single_node": 0.85,
-            "multi_node": 0.65
+            "single": 0.95,      # 单卡几乎没有通信开销
+            "single_node": 0.85, # 单节点内NVLink/PCIe通信
+            "multi_node": 0.65   # 多节点间网络通信
         }
     
     def load_config(self):
         """从YAML文件加载配置"""
         try:
+            # 处理配置文件路径
             if not os.path.isabs(self.config_path):
                 current_dir = os.path.dirname(os.path.abspath(__file__))
                 config_path = os.path.join(current_dir, self.config_path)
@@ -30,7 +32,8 @@ class TrainingTimeEstimator:
                 config = yaml.safe_load(f)
                 
             return config.get('models', [])
-        except Exception:
+        except Exception as e:
+            print(f"加载配置文件失败: {e}")
             return []
     
     def format_time(self, seconds):
@@ -38,6 +41,7 @@ class TrainingTimeEstimator:
         if seconds <= 0:
             return "0秒"
         
+        # 计算各个时间单位
         days = seconds // (24 * 3600)
         seconds %= (24 * 3600)
         hours = seconds // 3600
@@ -45,6 +49,7 @@ class TrainingTimeEstimator:
         minutes = seconds // 60
         seconds %= 60
         
+        # 构建时间字符串
         time_parts = []
         if days > 0:
             time_parts.append(f"{int(days)}天")
@@ -83,9 +88,9 @@ class TrainingTimeEstimator:
         # 确定效率因子
         if world_size == 1:
             efficiency = self.efficiency_factors["single"]
-        elif world_size <= 8:
+        elif world_size <= 8:  # 单节点
             efficiency = self.efficiency_factors["single_node"]
-        else:
+        else:  # 多节点
             efficiency = self.efficiency_factors["multi_node"]
         
         # 计算总token处理量
@@ -116,10 +121,6 @@ class TrainingTimeEstimator:
     
     def running_train(self, total_tokens_dict):
         """简化的训练时间估算函数，与run.py配合使用"""
-        if not total_tokens_dict:
-            print("没有可用的token数量数据!")
-            return
-        
         # 获取用户输入
         print("\n请配置训练参数:")
         
@@ -169,19 +170,8 @@ class TrainingTimeEstimator:
         print("注意: 此估算基于配置文件中的吞吐量和GPU数量")
         print("=" * 60)
         
-        # 获取token数量
-        while True:
-            try:
-                token_count = float(input("请输入训练数据的token数量: "))
-                if token_count > 0:
-                    break
-                else:
-                    print("token数量必须大于0")
-            except ValueError:
-                print("请输入有效的数字")
-        
         # 显示可用模型
-        print("\n可用模型:")
+        print("可用模型:")
         valid_models = []
         for i, model in enumerate(self.model_configs, 1):
             if not model.get('is_all_option', False):
@@ -202,6 +192,17 @@ class TrainingTimeEstimator:
         
         # 选择微调方法
         method, method_display = self.get_fine_tune_method()
+        
+        # 获取token数量
+        while True:
+            try:
+                token_count = float(input("请输入训练数据的token数量: "))
+                if token_count > 0:
+                    break
+                else:
+                    print("token数量必须大于0")
+            except ValueError:
+                print("请输入有效的数字")
         
         # 获取epoch数
         while True:

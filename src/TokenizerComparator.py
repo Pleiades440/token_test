@@ -1,38 +1,19 @@
 import os
 import sys
 import yaml
-from transformers import AutoTokenizer
-import datasets
-from datasets import load_dataset, Dataset
-from tqdm import tqdm
-import pyarrow as pa
-import time
-import logging
-import traceback
-import ijson
+from tokenizers import Tokenizer, pre_tokenizers, decoders, processors  # 主要导入 tokenizers
+from tokenizers.models import BPE, WordPiece, Unigram  # 根据需要导入模型类型
+from tokenizers.normalizers import NFKC, Lowercase, StripAccents  # 导入标准化器
 import json
-
-# 设置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("app.log"),
-        logging.StreamHandler()
-    ]
-)
+from tqdm import tqdm
 
 def resource_path(relative_path):
     """获取资源的绝对路径"""
     try:
-        # PyInstaller创建临时文件夹，将路径存储在_MEIPASS中
         base_path = sys._MEIPASS
     except Exception:
-        # 如果不是打包环境，或者需要访问外部文件，使用当前工作目录
         base_path = os.getcwd()
-    
-    path = os.path.join(base_path, relative_path)
-    return path
+    return os.path.join(base_path, relative_path)
 
 def is_frozen():
     """检查是否在打包环境中运行"""
@@ -40,15 +21,10 @@ def is_frozen():
 
 class TokenizerComparator:
     def __init__(self, config_path="config.yaml"):
-        # 先初始化logger
-        self.logger = logging.getLogger(__name__)
-        
         # 处理配置文件路径
         if is_frozen():
-            # 如果是打包环境，使用资源路径
             config_path = resource_path(config_path)
         elif not os.path.isabs(config_path):
-            # 如果不是打包环境，确保使用绝对路径
             current_dir = os.path.dirname(os.path.abspath(__file__))
             config_path = os.path.join(current_dir, config_path)
         
@@ -57,167 +33,116 @@ class TokenizerComparator:
     
     def load_config(self, config_path):
         """从YAML文件加载配置"""
-        try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = yaml.safe_load(f)
-                
-            # 数据集配置
-            self.dataset_options = config.get('datasets', [])
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
             
-            # 模型配置
-            self.model_options = config.get('models', [])
-            
-            self.logger.info("配置加载成功!")
-        except Exception as e:
-            self.logger.error(f"加载配置文件失败: {e}")
-            self.logger.error(traceback.format_exc())
-            raise
+        # 数据集配置 - 只保留第一个数据集
+        self.dataset_options = config.get('datasets', [])
+        if self.dataset_options:
+            self.default_dataset = self.dataset_options[0]
+        else:
+            self.default_dataset = {
+                'name': 'Default Dataset',
+                'local_path': 'data/default_dataset.jsonl'
+            }
+        
+        # 模型配置
+        self.model_options = config.get('models', [])
     
-
     def _load_local_dataset(self, path):
         """从本地路径加载数据集 - 简化版，支持JSONL"""
-        try:
-            # 处理路径（保持原样）
-            if is_frozen():
-                path = resource_path(path)
-            elif not os.path.isabs(path):
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                path = os.path.join(current_dir, path)
+        # 处理路径
+        if is_frozen():
+            path = resource_path(path)
+        elif not os.path.isabs(path):
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(current_dir, path)
 
-            path = os.path.normpath(path)
-            self.logger.info(f"尝试加载数据集: {path}")
+        path = os.path.normpath(path)
 
-            if not os.path.exists(path):
-                self.logger.error(f"路径不存在: {path}")
+        if not os.path.exists(path):
+            print(f"路径不存在: {path}")
+            return None
+
+        texts = []
+        
+        # 处理 JSONL 文件
+        if os.path.isfile(path) and path.endswith('.jsonl'):
+            try:
+                with open(path, 'r', encoding='utf-8') as file:
+                    for line in file:
+                        line = line.strip()
+                        if not line:
+                            continue
+                            
+                        try:
+                            obj = json.loads(line)
+                            extracted_text = self._extract_text_from_json(obj)
+                            if extracted_text:
+                                texts.append(extracted_text)
+                            else:
+                                texts.append(str(obj))
+                                
+                        except json.JSONDecodeError:
+                            texts.append(line)
+                
+            except Exception:
                 return None
 
-            texts = []  # 在外部定义 texts，确保所有分支都能访问
+            return texts
+
+        # 处理普通JSON文件
+        elif os.path.isfile(path) and path.endswith('.json'):
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
             
-            # 处理 JSONL 文件
-            if os.path.isfile(path) and path.endswith('.jsonl'):
-                self.logger.info(f"检测到JSONL文件: {path}")
-                line_count = 0
-                error_count = 0
-                
-                try:
-                    # 使用文本模式打开文件，逐行读取
-                    with open(path, 'r', encoding='utf-8') as file:
-                        for line in file:
-                            line_count += 1
-                            line = line.strip()
-                            if not line:  # 跳过空行
-                                continue
-                                
-                            try:
-                                # 直接使用json.loads解析每行
-                                obj = json.loads(line)
-                                # 尝试从对象中提取文本
-                                extracted_text = self._extract_text_from_json(obj)
-                                if extracted_text:
-                                    texts.append(extracted_text)
-                                else:
-                                    # 如果提取失败，记录一条警告并将整个对象转换为字符串作为后备
-                                    self.logger.warning(f"第{line_count}行: 从JSON对象中提取文本失败，使用后备方案: {str(obj)[:200]}...")
-                                    texts.append(str(obj))
-                                    
-                            except json.JSONDecodeError as e:
-                                error_count += 1
-                                # 记录错误但继续处理其他行
-                                self.logger.warning(f"第{line_count}行: JSON解析错误: {e}")
-                                # 将原始行作为文本添加
-                                texts.append(line)
-                                
-                except Exception as e:
-                    self.logger.error(f"读取JSONL文件时出错: {e}")
-                    import traceback
-                    self.logger.error(traceback.format_exc())
-                    return None
-
-                self.logger.info(f"从JSONL文件中成功加载 {len(texts)} 个文本样本，共处理 {line_count} 行，遇到 {error_count} 个错误")
-                return texts
-
-            # 处理普通JSON文件
-            elif os.path.isfile(path) and path.endswith('.json'):
-                self.logger.info("处理标准JSON格式文件")
-                with open(path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                # 记录数据结构以帮助调试
-                self.logger.info(f"JSON数据结构: {type(data)}")
-                if isinstance(data, list) and len(data) > 0:
-                    self.logger.info(f"第一个元素的类型: {type(data[0])}")
-                    if isinstance(data[0], dict):
-                        self.logger.info(f"第一个元素的键: {list(data[0].keys())}")
-                
-                # 处理数组格式的JSON
-                if isinstance(data, list):
-                    for i, item in enumerate(data):
-                        if i < 3:  # 记录前几个元素的信息
-                            extracted = self._extract_text_from_json(item)
-                            self.logger.info(f"第{i+1}个元素提取的文本: {extracted[:100] if extracted else '无文本提取'}...")
-                        
-                        text = self._extract_text_from_json(item)
-                        if text:
-                            texts.append(text)
-                # 处理对象格式的JSON
-                elif isinstance(data, dict):
-                    text = self._extract_text_from_json(data)
+            # 处理数组格式的JSON
+            if isinstance(data, list):
+                for item in data:
+                    text = self._extract_text_from_json(item)
                     if text:
                         texts.append(text)
-                else:
-                    self.logger.error(f"不支持的JSON格式: {type(data)}")
-                    return None
-                
-                self.logger.info(f"成功加载 {len(texts)} 个文本样本")
-                return texts
-                
-            # 处理其他文件格式（如TXT）
-            elif os.path.isfile(path) and path.endswith('.txt'):
-                self.logger.info(f"处理文本文件: {path}")
-                try:
-                    with open(path, 'r', encoding='utf-8') as f:
-                        texts = f.read().splitlines()
-                    self.logger.info(f"从文本文件中成功加载 {len(texts)} 行文本")
-                    return texts
-                except Exception as e:
-                    self.logger.error(f"读取文本文件时出错: {e}")
-                    return None
-                    
+            # 处理对象格式的JSON
+            elif isinstance(data, dict):
+                text = self._extract_text_from_json(data)
+                if text:
+                    texts.append(text)
             else:
-                self.logger.error(f"不支持的文件格式: {path}")
+                return None
+            
+            return texts
+            
+        # 处理其他文件格式（如TXT）
+        elif os.path.isfile(path) and path.endswith('.txt'):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    texts = f.read().splitlines()
+                return texts
+            except Exception:
                 return None
                 
-        except Exception as e:
-            self.logger.error(f"加载本地数据集时出错: {e}")
-            import traceback
-            self.logger.error(traceback.format_exc())
+        else:
             return None
     
-
     def _extract_text_from_json(self, item):
         """从JSON对象中提取文本内容"""
         if isinstance(item, dict):
             # 处理问答格式的数据 (instruction + input + output)
             if all(key in item for key in ['instruction', 'input', 'output']):
-                # 组合instruction、input和output字段
                 parts = []
                 
-                # 添加instruction
                 if item.get('instruction'):
                     parts.append(str(item['instruction']))
                 
-                # 添加input (如果有内容)
                 if item.get('input'):
                     parts.append(str(item['input']))
                 
-                # 添加output (如果有内容)
                 if item.get('output'):
                     parts.append(str(item['output']))
                 
                 if parts:
                     return "\n".join(parts)
             
-            # 原有的其他提取逻辑保持不变
             text_fields = ['text', 'content', 'article', 'body', 'question', 'input', 'output', 
                         'prompt', 'context', 'answer', 'choices', 'option', 'options', 'instruction']
             
@@ -227,13 +152,11 @@ class TokenizerComparator:
                     if isinstance(value, str):
                         return value
                     elif isinstance(value, list):
-                        # 如果是列表，尝试连接所有字符串元素
                         text_parts = []
                         for part in value:
                             if isinstance(part, str):
                                 text_parts.append(part)
                             elif isinstance(part, dict):
-                                # 如果是字典，递归提取
                                 nested_text = self._extract_text_from_json(part)
                                 if nested_text:
                                     text_parts.append(nested_text)
@@ -245,7 +168,6 @@ class TokenizerComparator:
                 if isinstance(value, str) and value:
                     return value
                 elif isinstance(value, list) and value and isinstance(value[0], str):
-                    # 如果是字符串列表，连接它们
                     return " ".join(value)
                     
             # 如果还没有找到，尝试嵌套查找
@@ -255,7 +177,6 @@ class TokenizerComparator:
                     if nested_text:
                         return nested_text
                 elif isinstance(value, list) and value and isinstance(value[0], dict):
-                    # 如果是字典列表，递归处理每个字典
                     text_parts = []
                     for sub_item in value:
                         nested_text = self._extract_text_from_json(sub_item)
@@ -267,178 +188,108 @@ class TokenizerComparator:
         elif isinstance(item, str) and item:
             return item
         elif isinstance(item, list) and item and isinstance(item[0], str):
-            # 如果是字符串列表，连接它们
             return " ".join(item)
             
         return None
     
-    def _load_dataset_online(self, dataset_info):
-        """从Hugging Face加载在线数据集"""
-        try:
-            dataset_name = dataset_info['name']
-            config_name = dataset_info.get('config', None)
-            split = dataset_info.get('split', 'train')
-            
-            print(f"从Hugging Face加载数据集: {dataset_name}")
-            
-            # 加载数据集
-            if config_name:
-                dataset = datasets.load_dataset(dataset_name, config_name, split=split)
-            else:
-                dataset = datasets.load_dataset(dataset_name, split=split)
-            
-            # 尝试获取文本列名
-            text_columns = [col for col in dataset.column_names if col in ['text', 'content', 'article']]
-            if text_columns:
-                return dataset[text_columns[0]]
-            else:
-                # 如果没有找到标准文本列，返回第一列
-                return dataset[dataset.column_names[0]]
-                
-        except Exception as e:
-            print(f"加载在线数据集时出错: {e}")
-            return None
-    
-    def load_dataset_texts(self, dataset_index):
-        """加载选定的数据集并返回文本列表"""
+    def load_dataset_texts(self, dataset_index=0):
+        """加载指定索引的数据集并返回文本列表"""
         if dataset_index < 0 or dataset_index >= len(self.dataset_options):
-            self.logger.error(f"无效的数据集选择: {dataset_index}")
             return None
-            
+        
         dataset_info = self.dataset_options[dataset_index]
-        self.logger.info(f"正在加载数据集: {dataset_info['name']}")
         
         # 检查是否有本地路径
         if "local_path" in dataset_info:
             local_path = dataset_info["local_path"]
             
-            # 处理路径 - 使用资源路径函数
+            # 处理路径
             abs_local_path = resource_path(local_path)
-            self.logger.info(f"数据集本地路径: {abs_local_path}")
             
             # 检查路径是否存在
             if os.path.exists(abs_local_path):
-                self.logger.info("从本地路径加载数据集...")
                 return self._load_local_dataset(abs_local_path)
-            else:
-                self.logger.warning(f"数据集本地路径不存在: {abs_local_path}")
-                # 如果本地路径不存在，尝试在线加载
-                if "hf_path" in dataset_info:
-                    self.logger.info("尝试从Hugging Face加载数据集...")
-                    return self._load_dataset_online(dataset_info)
-                else:
-                    self.logger.error("无法加载数据集: 本地路径不存在且未提供在线路径")
-                    return None
-        elif "hf_path" in dataset_info:
-            # 在线加载
-            return self._load_dataset_online(dataset_info)
-        else:
-            self.logger.error("数据集配置错误: 既没有本地路径也没有在线路径")
-            return None
         
+        return None
     
-    # 修改load_tokenizers方法，添加更多错误处理和日志
     def load_tokenizers(self, selected_model_indices):
-        """加载选定的tokenizer"""
-        self.logger.info("正在加载tokenizer...")
-        
+        """加载选定的 tokenizer (使用 tokenizers 库)"""
         successful_models = []
-        
         for model_index in selected_model_indices:
             if model_index < 0 or model_index >= len(self.model_options):
                 continue
-                
             model_info = self.model_options[model_index]
-            
-            # 跳过"全部模型"选项
-            if model_info.get("is_all_option", False):
+            # 跳过"全部模型"选项和需要认证的模型
+            if model_info.get("is_all_option", False) or model_info.get('auth_required', False):
                 continue
-                
-            # 跳过需要认证但用户未登录的模型
-            if model_info.get('auth_required', False):
-                self.logger.info(f"跳过 {model_info['name']} (需要认证)")
-                continue
-                
             try:
+                tokenizer = None
                 # 优先尝试本地路径
                 if "local_path" in model_info:
                     local_path = model_info["local_path"]
-                    
-                    # 处理路径
                     if is_frozen() and not os.path.isabs(local_path):
                         local_path = resource_path(local_path)
-                    
-                    if os.path.exists(local_path):
-                        self.logger.info(f"从本地加载 {model_info['name']} 的tokenizer...")
-                        tokenizer = AutoTokenizer.from_pretrained(
-                            local_path,
-                            trust_remote_code=model_info.get("trust_remote_code", False)
-                        )
+                    # 检查本地是否存在 tokenizer.json
+                    tokenizer_json_path = os.path.join(local_path, "tokenizer.json")
+                    if os.path.exists(tokenizer_json_path):
+                        tokenizer = Tokenizer.from_file(tokenizer_json_path)
                     else:
-                        # 在线加载
-                        self.logger.info(f"从网络加载 {model_info['name']} 的tokenizer...")
-                        tokenizer = AutoTokenizer.from_pretrained(
-                            model_info['model_name'],
-                            trust_remote_code=model_info.get('trust_remote_code', False)
-                        )
+                        # 如果本地没有 tokenizer.json，尝试从 Hugging Face 下载
+                        # 注意：tokenizers 库的 from_pretrained 可能不如 transformers 的 AutoTokenizer 全面
+                        # 这里尝试使用模型名在线加载，或者回退到其他方式
+                        try:
+                            # 注意：tokenizers 库的 from_pretrained 可能不支持所有模型，特别是那些需要 trust_remote_code 的
+                            if model_info.get('trust_remote_code', False):
+                                print(f"警告: tokenizers 库可能不支持 trust_remote_code，尝试加载 {model_info['name']} 可能失败。")
+                            tokenizer = Tokenizer.from_pretrained(model_info['model_name'])
+                        except Exception as e:
+                            print(f"从网络加载 {model_info['name']} 的 tokenizer 失败: {e}")
+                            # 可以尝试其他方式，例如使用 transformers 库（如果必须）或者跳过
+                            continue
                 else:
-                    # 在线加载
-                    self.logger.info(f"从网络加载 {model_info['name']} 的tokenizer...")
-                    tokenizer = AutoTokenizer.from_pretrained(
-                        model_info['model_name'],
-                        trust_remote_code=model_info.get('trust_remote_code', False)
-                    )
-                
-                # 确保所有tokenizer都有pad_token
-                if tokenizer.pad_token is None:
-                    tokenizer.pad_token = tokenizer.eos_token if tokenizer.eos_token else "<pad>"
-                
-                # 处理ChatGLM的特殊情况
-                if model_info['name'] == "智谱 (ChatGLM)":
-                    if not hasattr(tokenizer, 'vocab_size'):
-                        if hasattr(tokenizer, 'sp_model'):
-                            tokenizer.vocab_size = tokenizer.sp_model.get_piece_size()
-                        elif hasattr(tokenizer, 'vocab'):
-                            tokenizer.vocab_size = len(tokenizer.vocab)
-                        else:
-                            tokenizer.vocab_size = 65024
-                            self.logger.warning(f"无法确定 {model_info['name']} 的词汇表大小，使用默认值 {tokenizer.vocab_size}")
-                
+                    # 没有本地路径，尝试在线加载
+                    try:
+                        tokenizer = Tokenizer.from_pretrained(model_info['model_name'])
+                    except Exception as e:
+                        print(f"从网络加载 {model_info['name']} 的 tokenizer 失败: {e}")
+                        continue
+
+                if tokenizer is None:
+                    print(f"无法加载 {model_info['name']} 的 tokenizer")
+                    continue
+
+                # 确保 tokenizer 必要的设置
+                # 例如，设置 pad_token 等（如果 tokenizer 没有默认设置）
+                # tokenizers 库的 Tokenizer 对象设置方式可能与 transformers 不同
+                # 如果需要，可以在这里添加配置，例如：
+                # if tokenizer.pad_token is None:
+                #     try:
+                #         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+                #     except Exception:
+                #         print(f"无法为 {model_info['name']} 添加 pad_token")
+
                 tokenizer.model_name = model_info['name']
                 self.tokenizers[model_index] = tokenizer
                 successful_models.append(model_index)
-                self.logger.info(f"已加载 {model_info['name']} 的tokenizer")
-            
+                print(f"已加载 {model_info['name']} 的 tokenizer")
             except Exception as e:
-                error_msg = f"加载 {model_info['name']} 的tokenizer时出错: {e}"
-                self.logger.error(error_msg)
-                # 提供更详细的错误信息
+                print(f"加载 {model_info['name']} 的 tokenizer 时出错: {e}")
+                # 打印更详细的错误信息有助于调试
                 import traceback
-                self.logger.error(traceback.format_exc())
-                # 提供更具体的错误信息
-                if "file" in str(e).lower() or "path" in str(e).lower():
-                    self.logger.error("这可能是路径问题，请检查模型文件是否完整")
-        
+                traceback.print_exc()
         return successful_models
     
     def process_dataset(self, dataset_texts, selected_model_indices):
-        """处理数据集并比较tokenization结果"""
+        """处理数据集并比较 tokenization 结果 (使用 tokenizers 库)"""
         if not dataset_texts:
-            print("数据集为空!")
             return None
-        
         total_bytes = sum(len(text.encode('utf-8')) for text in dataset_texts)
         sample_count = len(dataset_texts)
-        
-        print(f"需要处理 {total_bytes} 字节的文本，共 {sample_count} 个样本")
-        
-        # 初始化结果字典
         results = {
             'total_bytes': total_bytes,
             'sample_count': sample_count,
             'models': {}
         }
-        
         # 为每个模型初始化计数器
         for model_index in selected_model_indices:
             if model_index in self.tokenizers:
@@ -447,29 +298,22 @@ class TokenizerComparator:
                     'total_tokens': 0,
                     'error_count': 0
                 }
-        
         # 使用tqdm显示进度条
-        print("开始处理数据，请稍候...")
         with tqdm(total=total_bytes, unit='B', unit_scale=True, desc="处理进度") as progress_bar:
-            # 处理每个文本样本
             for text in dataset_texts:
                 text_bytes = len(text.encode('utf-8'))
-                
-                # 对每个模型进行tokenization
                 for model_index in selected_model_indices:
                     if model_index in self.tokenizers:
                         model_name = self.tokenizers[model_index].model_name
-                        
                         try:
-                            tokens = self.tokenizers[model_index].encode(text, truncation=False)
-                            results['models'][model_name]['total_tokens'] += len(tokens)
+                            # 使用 tokenizers 库的 encode 方法
+                            # 注意：tokenizers 库的 encode 方法返回一个 Encoding 对象
+                            encoding = self.tokenizers[model_index].encode(text)
+                            results['models'][model_name]['total_tokens'] += len(encoding.tokens)  # 或者使用 encoding.ids 的长度
                         except Exception as e:
                             results['models'][model_name]['error_count'] += 1
                             print(f"处理文本时出错 ({model_name}): {e}")
-                
-                # 更新进度条
                 progress_bar.update(text_bytes)
-        
         return results
     
     def display_results(self, results):
@@ -500,19 +344,8 @@ class TokenizerComparator:
         print("       多模型Tokenizer对比分析工具")
         print("="*60)
         
-        # 选择数据集
-        print("\n请选择数据集:")
-        for i, dataset in enumerate(self.dataset_options, 1):
-            print(f"{i}. {dataset['name']}")
-        
-        try:
-            dataset_choice_idx = int(input("\n请输入数据集编号: ")) - 1
-            if dataset_choice_idx < 0 or dataset_choice_idx >= len(self.dataset_options):
-                print("无效的选择!")
-                return
-        except ValueError:
-            print("请输入有效的数字!")
-            return
+        # 直接使用默认数据集，不再让用户选择
+        print(f"\n使用默认数据集: {self.default_dataset['name']}")
         
         # 选择模型
         print("\n请选择要比较的模型 (可多选，用逗号分隔):")
@@ -547,7 +380,7 @@ class TokenizerComparator:
             return
         
         # 加载数据集文本
-        dataset_texts = self.load_dataset_texts(dataset_choice_idx)
+        dataset_texts = self.load_dataset_texts(0)
         if not dataset_texts:
             print("无法加载数据集!")
             return
@@ -564,22 +397,21 @@ class TokenizerComparator:
         if results:
             # 显示结果
             self.display_results(results)
+            return results
         else:
             print("处理数据集时出错!")
+            return None
 
 # 运行程序
 if __name__ == "__main__":
     # 检查必要的库是否已安装
     try:
         import transformers
-        import datasets
-        import pandas
         import yaml
-        import pyarrow
         from tqdm import tqdm
     except ImportError as e:
         print(f"缺少必要的库: {e}")
-        print("请使用以下命令安装: pip install transformers datasets pandas tqdm pyyaml pyarrow")
+        print("请使用以下命令安装: pip install transformers yaml tqdm")
         sys.exit(1)
     
     # 使用配置文件

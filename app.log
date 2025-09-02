@@ -369,3 +369,544 @@ ijson.common.IncompleteJSONError: parse error: trailing garbage
 2025-09-01 14:23:37,183 - INFO - 正在加载tokenizer...
 2025-09-01 14:23:37,183 - INFO - 从本地加载 Qwen 的tokenizer...
 2025-09-01 14:23:37,505 - INFO - 已加载 Qwen 的tokenizer
+2025-09-01 15:04:08,006 - INFO - 配置加载成功!
+2025-09-01 15:04:12,681 - INFO - 正在加载数据集: mmlu_dev
+2025-09-01 15:04:12,682 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:04:12,682 - INFO - 从本地路径加载数据集...
+2025-09-01 15:04:12,682 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:04:12,682 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:04:12,685 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-01 15:04:12,685 - INFO - 正在加载tokenizer...
+2025-09-01 15:04:12,686 - INFO - 从本地加载 Qwen 的tokenizer...
+2025-09-01 15:04:13,001 - INFO - 已加载 Qwen 的tokenizer
+2025-09-01 15:04:31,883 - INFO - 配置加载成功!
+2025-09-01 15:04:33,442 - INFO - 正在加载数据集: mmlu_dev
+2025-09-01 15:04:33,442 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:04:33,442 - INFO - 从本地路径加载数据集...
+2025-09-01 15:04:33,442 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:04:33,443 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:04:33,445 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-01 15:04:33,446 - INFO - 正在加载tokenizer...
+2025-09-01 15:04:33,446 - INFO - 从本地加载 Qwen 的tokenizer...
+2025-09-01 15:04:33,755 - INFO - 已加载 Qwen 的tokenizer
+2025-09-01 15:04:33,756 - INFO - 从本地加载 DeepSeek 的tokenizer...
+2025-09-01 15:04:33,959 - INFO - 已加载 DeepSeek 的tokenizer
+2025-09-01 15:04:33,959 - INFO - 从本地加载 智谱 (ChatGLM) 的tokenizer...
+2025-09-01 15:04:34,012 - ERROR - 加载 智谱 (ChatGLM) 的tokenizer时出错: ChatGLMTokenizer has no attribute vocab_size
+2025-09-01 15:04:34,048 - ERROR - Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 376, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1101, in from_pretrained
+    return tokenizer_class.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2069, in from_pretrained
+    return cls._from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2315, in _from_pretrained
+    tokenizer = cls(*init_inputs, **init_kwargs)
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 196, in __init__
+    super().__init__(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 438, in __init__
+    self._add_tokens(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 546, in _add_tokens
+    current_vocab = self.get_vocab().copy()
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 248, in get_vocab
+    vocab = {self._convert_id_to_token(i): i for i in range(self.vocab_size)}
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 1099, in __getattr__
+    raise AttributeError(f"{self.__class__.__name__} has no attribute {key}")
+AttributeError: ChatGLMTokenizer has no attribute vocab_size
+
+2025-09-01 15:36:39,925 - INFO - 配置加载成功!
+2025-09-01 15:36:41,645 - INFO - 正在加载数据集: mmlu_dev
+2025-09-01 15:36:41,645 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:36:41,646 - INFO - 从本地路径加载数据集...
+2025-09-01 15:36:41,646 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:36:41,646 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:36:41,648 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-01 15:36:41,649 - INFO - 正在加载tokenizer...
+2025-09-01 15:36:41,649 - INFO - 从本地加载 智谱 (ChatGLM) 的tokenizer...
+2025-09-01 15:36:41,676 - ERROR - 加载 智谱 (ChatGLM) 的tokenizer时出错: ChatGLMTokenizer has no attribute vocab_size
+2025-09-01 15:36:41,678 - ERROR - Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 376, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1101, in from_pretrained
+    return tokenizer_class.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2069, in from_pretrained
+    return cls._from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2315, in _from_pretrained
+    tokenizer = cls(*init_inputs, **init_kwargs)
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 196, in __init__
+    super().__init__(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 438, in __init__
+    self._add_tokens(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 546, in _add_tokens
+    current_vocab = self.get_vocab().copy()
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 248, in get_vocab
+    vocab = {self._convert_id_to_token(i): i for i in range(self.vocab_size)}
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 1099, in __getattr__
+    raise AttributeError(f"{self.__class__.__name__} has no attribute {key}")
+AttributeError: ChatGLMTokenizer has no attribute vocab_size
+
+2025-09-01 15:44:39,645 - INFO - 配置加载成功!
+2025-09-01 15:44:40,775 - INFO - 正在加载数据集: mmlu_dev
+2025-09-01 15:44:40,775 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:44:40,776 - INFO - 从本地路径加载数据集...
+2025-09-01 15:44:40,776 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:44:40,776 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:44:40,779 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-01 15:44:40,780 - INFO - 正在加载tokenizer...
+2025-09-01 15:44:40,780 - INFO - 从本地加载 智谱 (ChatGLM) 的tokenizer...
+2025-09-01 15:44:40,804 - ERROR - 加载 智谱 (ChatGLM) 的tokenizer时出错: ChatGLMTokenizer has no attribute vocab_size
+2025-09-01 15:44:40,806 - ERROR - Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 376, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1101, in from_pretrained
+    return tokenizer_class.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2069, in from_pretrained
+    return cls._from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2315, in _from_pretrained
+    tokenizer = cls(*init_inputs, **init_kwargs)
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 196, in __init__
+    super().__init__(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 438, in __init__
+    self._add_tokens(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 546, in _add_tokens
+    current_vocab = self.get_vocab().copy()
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 248, in get_vocab
+    vocab = {self._convert_id_to_token(i): i for i in range(self.vocab_size)}
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 1099, in __getattr__
+    raise AttributeError(f"{self.__class__.__name__} has no attribute {key}")
+AttributeError: ChatGLMTokenizer has no attribute vocab_size
+
+2025-09-01 15:55:13,807 - INFO - 配置加载成功!
+2025-09-01 15:55:15,513 - INFO - 正在加载数据集: mmlu_dev
+2025-09-01 15:55:15,513 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:55:15,514 - INFO - 从本地路径加载数据集...
+2025-09-01 15:55:15,514 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:55:15,514 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 15:55:15,517 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-01 15:55:15,517 - INFO - 正在加载tokenizer...
+2025-09-01 15:55:15,517 - INFO - 从本地加载 智谱 (ChatGLM) 的tokenizer...
+2025-09-01 15:55:15,542 - ERROR - 加载 智谱 (ChatGLM) 的tokenizer时出错: ChatGLMTokenizer has no attribute vocab_size
+2025-09-01 15:55:15,545 - ERROR - Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 376, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1101, in from_pretrained
+    return tokenizer_class.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2069, in from_pretrained
+    return cls._from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2315, in _from_pretrained
+    tokenizer = cls(*init_inputs, **init_kwargs)
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 196, in __init__
+    super().__init__(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 438, in __init__
+    self._add_tokens(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 546, in _add_tokens
+    current_vocab = self.get_vocab().copy()
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 248, in get_vocab
+    vocab = {self._convert_id_to_token(i): i for i in range(self.vocab_size)}
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 1099, in __getattr__
+    raise AttributeError(f"{self.__class__.__name__} has no attribute {key}")
+AttributeError: ChatGLMTokenizer has no attribute vocab_size
+
+2025-09-01 16:04:36,391 - INFO - 配置加载成功!
+2025-09-01 16:04:38,281 - INFO - 正在加载数据集: mmlu_dev
+2025-09-01 16:04:38,281 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 16:04:38,282 - INFO - 从本地路径加载数据集...
+2025-09-01 16:04:38,282 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 16:04:38,283 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 16:04:38,287 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-01 16:04:38,287 - INFO - 正在加载tokenizer...
+2025-09-01 16:04:38,288 - INFO - 从本地加载 智谱 (ChatGLM) 的tokenizer...
+2025-09-01 16:04:38,323 - ERROR - 加载 智谱 (ChatGLM) 的tokenizer时出错: ChatGLMTokenizer has no attribute vocab_size
+2025-09-01 16:04:38,327 - ERROR - Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 375, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1101, in from_pretrained
+    return tokenizer_class.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2069, in from_pretrained
+    return cls._from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2315, in _from_pretrained
+    tokenizer = cls(*init_inputs, **init_kwargs)
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 196, in __init__
+    super().__init__(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 438, in __init__
+    self._add_tokens(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 546, in _add_tokens
+    current_vocab = self.get_vocab().copy()
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 248, in get_vocab
+    vocab = {self._convert_id_to_token(i): i for i in range(self.vocab_size)}
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 1099, in __getattr__
+    raise AttributeError(f"{self.__class__.__name__} has no attribute {key}")
+AttributeError: ChatGLMTokenizer has no attribute vocab_size
+
+2025-09-01 16:31:20,516 - INFO - 配置加载成功!
+2025-09-01 16:31:24,844 - INFO - 正在加载数据集: mmlu_dev
+2025-09-01 16:31:24,844 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 16:31:24,844 - INFO - 从本地路径加载数据集...
+2025-09-01 16:31:24,845 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 16:31:24,845 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 16:31:24,849 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-01 16:31:24,850 - INFO - 正在加载tokenizer...
+2025-09-01 16:31:24,850 - INFO - 从本地加载 Qwen 的tokenizer...
+2025-09-01 16:31:25,200 - INFO - 已加载 Qwen 的tokenizer
+2025-09-01 16:31:25,200 - INFO - 从本地加载 DeepSeek 的tokenizer...
+2025-09-01 16:31:25,342 - INFO - 已加载 DeepSeek 的tokenizer
+2025-09-01 16:31:59,640 - INFO - 配置加载成功!
+2025-09-01 16:32:01,125 - INFO - 正在加载数据集: mmlu_dev
+2025-09-01 16:32:01,126 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 16:32:01,126 - INFO - 从本地路径加载数据集...
+2025-09-01 16:32:01,127 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 16:32:01,127 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-01 16:32:01,133 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-01 16:32:01,134 - INFO - 正在加载tokenizer...
+2025-09-01 16:32:01,134 - INFO - 从本地加载 Qwen 的tokenizer...
+2025-09-01 16:32:01,470 - INFO - 已加载 Qwen 的tokenizer
+2025-09-01 16:32:01,471 - INFO - 从本地加载 DeepSeek 的tokenizer...
+2025-09-01 16:32:01,596 - INFO - 已加载 DeepSeek 的tokenizer
+2025-09-01 16:32:01,596 - INFO - 从本地加载 智谱 (ChatGLM) 的tokenizer...
+2025-09-01 16:32:01,614 - ERROR - 加载 智谱 (ChatGLM) 的tokenizer时出错: ChatGLMTokenizer has no attribute vocab_size
+2025-09-01 16:32:01,617 - ERROR - Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 375, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1101, in from_pretrained
+    return tokenizer_class.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2069, in from_pretrained
+    return cls._from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 2315, in _from_pretrained
+    tokenizer = cls(*init_inputs, **init_kwargs)
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 196, in __init__
+    super().__init__(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 438, in __init__
+    self._add_tokens(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils.py", line 546, in _add_tokens
+    current_vocab = self.get_vocab().copy()
+  File "C:\Users\czx\.cache\huggingface\modules\transformers_modules\chatglm-6b\tokenization_chatglm.py", line 248, in get_vocab
+    vocab = {self._convert_id_to_token(i): i for i in range(self.vocab_size)}
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\tokenization_utils_base.py", line 1099, in __getattr__
+    raise AttributeError(f"{self.__class__.__name__} has no attribute {key}")
+AttributeError: ChatGLMTokenizer has no attribute vocab_size
+
+2025-09-02 09:17:19,078 - INFO - 配置加载成功!
+2025-09-02 09:17:26,558 - INFO - 正在加载数据集: mmlu_dev
+2025-09-02 09:17:26,558 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 09:17:26,559 - INFO - 从本地路径加载数据集...
+2025-09-02 09:17:26,559 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 09:17:26,560 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 09:17:26,575 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-02 09:17:26,576 - INFO - 正在加载tokenizer...
+2025-09-02 09:17:26,577 - INFO - 从网络加载 Qwen-1.8B 的tokenizer...
+2025-09-02 09:17:27,969 - ERROR - 加载 Qwen-1.8B 的tokenizer时出错: Qwen/Qwen2-1.8B-Instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`
+2025-09-02 09:17:28,049 - ERROR - Traceback (most recent call last):
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_http.py", line 409, in hf_raise_for_status
+    response.raise_for_status()
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\requests\models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 401 Client Error: Unauthorized for url: https://huggingface.co/Qwen/Qwen2-1.8B-Instruct/resolve/main/tokenizer_config.json
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 479, in cached_files
+    hf_hub_download(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1010, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1117, in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1658, in _raise_on_head_call_error
+    raise head_call_error
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1546, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1463, in get_hf_file_metadata
+    r = _request_wrapper(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 286, in _request_wrapper
+    response = _request_wrapper(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 310, in _request_wrapper
+    hf_raise_for_status(response)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_http.py", line 459, in hf_raise_for_status
+    raise _format(RepositoryNotFoundError, message, response) from e
+huggingface_hub.errors.RepositoryNotFoundError: 401 Client Error. (Request ID: Root=1-68b645a5-282dc35c63eaa62d542c14d4;ffe8647c-5af0-4148-9db1-69bc5ba47911)
+
+Repository Not Found for url: https://huggingface.co/Qwen/Qwen2-1.8B-Instruct/resolve/main/tokenizer_config.json.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated. For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+Invalid username or password.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 382, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1049, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 881, in get_tokenizer_config
+    resolved_config_file = cached_file(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 321, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 511, in cached_files
+    raise OSError(
+OSError: Qwen/Qwen2-1.8B-Instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`
+
+2025-09-02 09:17:28,053 - INFO - 从本地加载 Qwen-7B 的tokenizer...
+2025-09-02 09:17:28,378 - INFO - 已加载 Qwen-7B 的tokenizer
+2025-09-02 09:17:28,379 - INFO - 从网络加载 Qwen-14B 的tokenizer...
+2025-09-02 09:17:28,743 - ERROR - 加载 Qwen-14B 的tokenizer时出错: Qwen/Qwen2-14B-Instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`
+2025-09-02 09:17:28,747 - ERROR - Traceback (most recent call last):
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_http.py", line 409, in hf_raise_for_status
+    response.raise_for_status()
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\requests\models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 401 Client Error: Unauthorized for url: https://huggingface.co/Qwen/Qwen2-14B-Instruct/resolve/main/tokenizer_config.json
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 479, in cached_files
+    hf_hub_download(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1010, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1117, in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1658, in _raise_on_head_call_error
+    raise head_call_error
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1546, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1463, in get_hf_file_metadata
+    r = _request_wrapper(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 286, in _request_wrapper
+    response = _request_wrapper(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 310, in _request_wrapper
+    hf_raise_for_status(response)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_http.py", line 459, in hf_raise_for_status
+    raise _format(RepositoryNotFoundError, message, response) from e
+huggingface_hub.errors.RepositoryNotFoundError: 401 Client Error. (Request ID: Root=1-68b645a6-532f5d8f610f59b01620bea6;9d9d1f05-89b5-458b-b6f6-b9f14ce594a1)
+
+Repository Not Found for url: https://huggingface.co/Qwen/Qwen2-14B-Instruct/resolve/main/tokenizer_config.json.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated. For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+Invalid username or password.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 382, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1049, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 881, in get_tokenizer_config
+    resolved_config_file = cached_file(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 321, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 511, in cached_files
+    raise OSError(
+OSError: Qwen/Qwen2-14B-Instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`
+
+2025-09-02 09:17:28,756 - INFO - 从网络加载 Qwen-32B 的tokenizer...
+2025-09-02 09:17:29,114 - ERROR - 加载 Qwen-32B 的tokenizer时出错: Qwen/Qwen2-32B-Instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`
+2025-09-02 09:17:29,118 - ERROR - Traceback (most recent call last):
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_http.py", line 409, in hf_raise_for_status
+    response.raise_for_status()
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\requests\models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 401 Client Error: Unauthorized for url: https://huggingface.co/Qwen/Qwen2-32B-Instruct/resolve/main/tokenizer_config.json
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 479, in cached_files
+    hf_hub_download(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1010, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1117, in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1658, in _raise_on_head_call_error
+    raise head_call_error
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1546, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1463, in get_hf_file_metadata
+    r = _request_wrapper(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 286, in _request_wrapper
+    response = _request_wrapper(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 310, in _request_wrapper
+    hf_raise_for_status(response)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_http.py", line 459, in hf_raise_for_status
+    raise _format(RepositoryNotFoundError, message, response) from e
+huggingface_hub.errors.RepositoryNotFoundError: 401 Client Error. (Request ID: Root=1-68b645a7-4a143be57d4d09fe07b35dc8;bc1e2475-ca03-42be-bb5e-8c5534b45789)
+
+Repository Not Found for url: https://huggingface.co/Qwen/Qwen2-32B-Instruct/resolve/main/tokenizer_config.json.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated. For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+Invalid username or password.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 382, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1049, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 881, in get_tokenizer_config
+    resolved_config_file = cached_file(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 321, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 511, in cached_files
+    raise OSError(
+OSError: Qwen/Qwen2-32B-Instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`
+
+2025-09-02 09:17:29,126 - INFO - 从网络加载 Qwen-72B 的tokenizer...
+2025-09-02 09:17:41,162 - INFO - 已加载 Qwen-72B 的tokenizer
+2025-09-02 09:17:41,162 - INFO - 从网络加载 DeepSeek-1.3B 的tokenizer...
+2025-09-02 09:17:46,120 - INFO - 已加载 DeepSeek-1.3B 的tokenizer
+2025-09-02 09:17:46,121 - INFO - 从本地加载 DeepSeek-6.7B 的tokenizer...
+2025-09-02 09:17:46,205 - INFO - 已加载 DeepSeek-6.7B 的tokenizer
+2025-09-02 09:17:46,205 - INFO - 从网络加载 DeepSeek-14B 的tokenizer...
+2025-09-02 09:17:46,573 - ERROR - 加载 DeepSeek-14B 的tokenizer时出错: deepseek-ai/deepseek-coder-14b-instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`
+2025-09-02 09:17:46,574 - ERROR - Traceback (most recent call last):
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_http.py", line 409, in hf_raise_for_status
+    response.raise_for_status()
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\requests\models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 401 Client Error: Unauthorized for url: https://huggingface.co/deepseek-ai/deepseek-coder-14b-instruct/resolve/main/tokenizer_config.json
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 479, in cached_files
+    hf_hub_download(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1010, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1117, in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1658, in _raise_on_head_call_error
+    raise head_call_error
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1546, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 1463, in get_hf_file_metadata
+    r = _request_wrapper(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 286, in _request_wrapper
+    response = _request_wrapper(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\file_download.py", line 310, in _request_wrapper
+    hf_raise_for_status(response)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\huggingface_hub\utils\_http.py", line 459, in hf_raise_for_status
+    raise _format(RepositoryNotFoundError, message, response) from e
+huggingface_hub.errors.RepositoryNotFoundError: 401 Client Error. (Request ID: Root=1-68b645b8-2dc1d6d90e042daa314157c1;6fe9a31e-f920-4179-a078-635656119acc)
+
+Repository Not Found for url: https://huggingface.co/deepseek-ai/deepseek-coder-14b-instruct/resolve/main/tokenizer_config.json.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated. For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+Invalid username or password.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "c:\Users\czx\Desktop\token_test\src\TokenizerComparator.py", line 382, in load_tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1049, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 881, in get_tokenizer_config
+    resolved_config_file = cached_file(
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 321, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+  File "D:\Anaconda\envs\tokenizer_test\lib\site-packages\transformers\utils\hub.py", line 511, in cached_files
+    raise OSError(
+OSError: deepseek-ai/deepseek-coder-14b-instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`
+
+2025-09-02 09:17:46,578 - INFO - 从网络加载 DeepSeek-33B 的tokenizer...
+2025-09-02 09:46:31,851 - INFO - 配置加载成功!
+2025-09-02 09:46:33,763 - INFO - 正在加载数据集: mmlu_dev
+2025-09-02 09:46:33,764 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 09:46:33,764 - INFO - 从本地路径加载数据集...
+2025-09-02 09:46:33,764 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 09:46:33,765 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 09:46:33,783 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-02 09:46:33,783 - INFO - 正在加载tokenizer...
+2025-09-02 09:46:33,784 - INFO - 从本地加载 Qwen-1.8B 的tokenizer...
+2025-09-02 09:46:34,106 - INFO - 已加载 Qwen-1.8B 的tokenizer
+2025-09-02 09:46:34,107 - INFO - 从本地加载 Qwen-7B 的tokenizer...
+2025-09-02 09:46:34,406 - INFO - 已加载 Qwen-7B 的tokenizer
+2025-09-02 09:46:34,406 - INFO - 从本地加载 Qwen-14B 的tokenizer...
+2025-09-02 09:46:34,715 - INFO - 已加载 Qwen-14B 的tokenizer
+2025-09-02 09:46:34,715 - INFO - 从本地加载 Qwen-32B 的tokenizer...
+2025-09-02 09:46:35,018 - INFO - 已加载 Qwen-32B 的tokenizer
+2025-09-02 09:46:35,019 - INFO - 从本地加载 Qwen-72B 的tokenizer...
+2025-09-02 09:46:35,312 - INFO - 已加载 Qwen-72B 的tokenizer
+2025-09-02 09:46:35,313 - INFO - 从本地加载 DeepSeek-1.3B 的tokenizer...
+2025-09-02 09:46:35,492 - INFO - 已加载 DeepSeek-1.3B 的tokenizer
+2025-09-02 09:46:35,492 - INFO - 从本地加载 DeepSeek-6.7B 的tokenizer...
+2025-09-02 09:46:35,572 - INFO - 已加载 DeepSeek-6.7B 的tokenizer
+2025-09-02 09:46:35,572 - INFO - 从本地加载 DeepSeek-14B 的tokenizer...
+2025-09-02 09:46:35,653 - INFO - 已加载 DeepSeek-14B 的tokenizer
+2025-09-02 09:46:35,653 - INFO - 从本地加载 DeepSeek-33B 的tokenizer...
+2025-09-02 09:46:35,731 - INFO - 已加载 DeepSeek-33B 的tokenizer
+2025-09-02 09:46:35,732 - INFO - 从本地加载 DeepSeek-67B 的tokenizer...
+2025-09-02 09:46:35,813 - INFO - 已加载 DeepSeek-67B 的tokenizer
+2025-09-02 10:28:34,729 - INFO - 配置加载成功!
+2025-09-02 10:28:57,093 - INFO - 正在加载数据集: mmlu_dev
+2025-09-02 10:28:57,094 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 10:28:57,094 - INFO - 从本地路径加载数据集...
+2025-09-02 10:28:57,095 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 10:28:57,095 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 10:28:57,114 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-02 10:28:57,115 - INFO - 正在加载tokenizer...
+2025-09-02 10:28:57,115 - INFO - 从本地加载 Qwen-1.8B 的tokenizer...
+2025-09-02 10:28:57,427 - INFO - 已加载 Qwen-1.8B 的tokenizer
+2025-09-02 10:59:35,146 - INFO - 配置加载成功!
+2025-09-02 11:11:23,611 - INFO - 正在加载数据集: mmlu_dev
+2025-09-02 11:11:23,611 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 11:11:23,612 - INFO - 从本地路径加载数据集...
+2025-09-02 11:11:23,613 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 11:11:23,613 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 11:11:23,616 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-02 11:11:23,616 - INFO - 正在加载tokenizer...
+2025-09-02 11:11:23,617 - INFO - 从本地加载 Qwen-1.8B 的tokenizer...
+2025-09-02 11:11:23,949 - INFO - 已加载 Qwen-1.8B 的tokenizer
+2025-09-02 11:43:57,763 - INFO - 配置加载成功!
+2025-09-02 11:43:59,239 - INFO - 正在加载数据集: mmlu_dev
+2025-09-02 11:43:59,239 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 11:43:59,239 - INFO - 从本地路径加载数据集...
+2025-09-02 11:43:59,239 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 11:43:59,240 - INFO - 检测到JSONL文件: C:\Users\czx\Desktop\token_test\data\mmlu_dev.jsonl
+2025-09-02 11:43:59,243 - INFO - 从JSONL文件中成功加载 285 个文本样本，共处理 285 行，遇到 0 个错误
+2025-09-02 11:43:59,243 - INFO - 正在加载tokenizer...
+2025-09-02 11:43:59,243 - INFO - 从本地加载 Qwen-1.8B 的tokenizer...
+2025-09-02 11:43:59,571 - INFO - 已加载 Qwen-1.8B 的tokenizer
+2025-09-02 11:43:59,571 - INFO - 从本地加载 Qwen-7B 的tokenizer...
+2025-09-02 11:43:59,890 - INFO - 已加载 Qwen-7B 的tokenizer
+2025-09-02 11:43:59,891 - INFO - 从本地加载 Qwen-14B 的tokenizer...
+2025-09-02 11:44:00,273 - INFO - 已加载 Qwen-14B 的tokenizer
+2025-09-02 11:44:00,273 - INFO - 从本地加载 Qwen-32B 的tokenizer...
+2025-09-02 11:44:00,684 - INFO - 已加载 Qwen-32B 的tokenizer
+2025-09-02 11:44:00,685 - INFO - 从本地加载 Qwen-72B 的tokenizer...
+2025-09-02 11:44:01,063 - INFO - 已加载 Qwen-72B 的tokenizer
+2025-09-02 11:44:01,064 - INFO - 从本地加载 DeepSeek-1.3B 的tokenizer...
+2025-09-02 11:44:01,208 - INFO - 已加载 DeepSeek-1.3B 的tokenizer
+2025-09-02 11:44:01,208 - INFO - 从本地加载 DeepSeek-6.7B 的tokenizer...
+2025-09-02 11:44:01,297 - INFO - 已加载 DeepSeek-6.7B 的tokenizer
+2025-09-02 11:44:01,298 - INFO - 从本地加载 DeepSeek-14B 的tokenizer...
+2025-09-02 11:44:01,392 - INFO - 已加载 DeepSeek-14B 的tokenizer
+2025-09-02 11:44:01,393 - INFO - 从本地加载 DeepSeek-33B 的tokenizer...
+2025-09-02 11:44:01,495 - INFO - 已加载 DeepSeek-33B 的tokenizer
+2025-09-02 11:44:01,496 - INFO - 从本地加载 DeepSeek-67B 的tokenizer...
+2025-09-02 11:44:01,587 - INFO - 已加载 DeepSeek-67B 的tokenizer

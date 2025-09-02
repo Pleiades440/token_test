@@ -3,32 +3,111 @@
 datasets:
   - name: "mmlu_dev"
     local_path: "data\\mmlu_dev.jsonl"
-  
 
 # 模型配置
 models:
-  - name: "Qwen"
+  # Qwen 系列模型
+  - name: "Qwen-1.8B"
+    model_name: "Qwen/Qwen2-1.8B-Instruct"
+    local_path: "models\\Qwen2-7B-Instruct"
+    full:
+      throughput: 1200  # tokens/秒
+      world_size: 1     # 所需GPU数量
+    lora:
+      throughput: 1800  # tokens/秒
+      world_size: 1     # 所需GPU数量
+
+  - name: "Qwen-7B"
     model_name: "Qwen/Qwen2-7B-Instruct"
-    local_path: "models\\Qwen2-7B-Instruct"  # 改为相对路径
-    trust_remote_code: true
-  
-  - name: "DeepSeek"
+    local_path: "models\\Qwen2-7B-Instruct"
+    full:
+      throughput: 300   # tokens/秒
+      world_size: 8     # 所需GPU数量
+    lora:
+      throughput: 500   # tokens/秒
+      world_size: 1     # 所需GPU数量
+
+  - name: "Qwen-14B"
+    model_name: "Qwen/Qwen2-14B-Instruct"  # 假设存在此模型
+    local_path: "models\\Qwen2-7B-Instruct"
+    full:
+      throughput: 150   # tokens/秒
+      world_size: 16    # 所需GPU数量
+    lora:
+      throughput: 400   # tokens/秒
+      world_size: 2     # 所需GPU数量
+
+  - name: "Qwen-32B"    # 假设存在此模型
+    model_name: "Qwen/Qwen2-32B-Instruct"
+    local_path: "models\\Qwen2-7B-Instruct"
+    full:
+      throughput: 80    # tokens/秒
+      world_size: 32    # 所需GPU数量
+    lora:
+      throughput: 300   # tokens/秒
+      world_size: 4     # 所需GPU数量
+
+  - name: "Qwen-72B"    # Qwen目前最大为72B，而非70B
+    model_name: "Qwen/Qwen2-72B-Instruct"
+    local_path: "models\\Qwen2-7B-Instruct"
+    full:
+      throughput: 40    # tokens/秒
+      world_size: 64    # 所需GPU数量
+    lora:
+      throughput: 200   # tokens/秒
+      world_size: 8     # 所需GPU数量
+
+  # DeepSeek 系列模型
+  - name: "DeepSeek-1.3B"  # DeepSeek最小为1.3B
+    model_name: "deepseek-ai/deepseek-coder-1.3b-instruct"
+    local_path: "models\\deepseek-coder-6.7b-instruct"
+    full:
+      throughput: 1100  # tokens/秒
+      world_size: 1     # 所需GPU数量
+    lora:
+      throughput: 1700  # tokens/秒
+      world_size: 1     # 所需GPU数量
+
+  - name: "DeepSeek-6.7B"  # DeepSeek的7B级别模型实际为6.7B
     model_name: "deepseek-ai/deepseek-coder-6.7b-instruct"
-    local_path: "models\\deepseek-coder-6.7b-instruct"  # 改为相对路径
-  
-  - name: "智谱 (ChatGLM)"
-    model_name: "zai-org/chatglm3-6b"
-    local_path: "models\\chatglm-6b" 
-    trust_remote_code: true
-  
+    local_path: "models\\deepseek-coder-6.7b-instruct"
+    full:
+      throughput: 280   # tokens/秒
+      world_size: 8     # 所需GPU数量
+    lora:
+      throughput: 480   # tokens/秒
+      world_size: 1     # 所需GPU数量
+
+  - name: "DeepSeek-14B"   # 假设存在此模型
+    model_name: "deepseek-ai/deepseek-coder-14b-instruct"
+    local_path: "models\\deepseek-coder-6.7b-instruct"
+    full:
+      throughput: 140   # tokens/秒
+      world_size: 16    # 所需GPU数量
+    lora:
+      throughput: 380   # tokens/秒
+      world_size: 2     # 所需GPU数量
+
+  - name: "DeepSeek-33B"   # DeepSeek的32B级别模型实际为33B
+    model_name: "deepseek-ai/deepseek-coder-33b-instruct"
+    local_path: "models\\deepseek-coder-6.7b-instruct"
+    full:
+      throughput: 75    # tokens/秒
+      world_size: 32    # 所需GPU数量
+    lora:
+      throughput: 280   # tokens/秒
+      world_size: 4     # 所需GPU数量
+
+  - name: "DeepSeek-67B"   # 假设存在此模型
+    model_name: "deepseek-ai/deepseek-coder-67b-instruct"
+    local_path: "models\\deepseek-coder-6.7b-instruct"
+    full:
+      throughput: 35    # tokens/秒
+      world_size: 64    # 所需GPU数量
+    lora:
+      throughput: 180   # tokens/秒
+      world_size: 8     # 所需GPU数量
+
+  # 全部模型选项
   - name: "全部模型"
     is_all_option: true
-
-  # name: Qwen-7B
-  # tokenizer: /path/
-  # full:
-  #   throughput: 300
-  #   world_size: 8
-  # lora:
-  #   throughput: 500
-  #   world_size: 1

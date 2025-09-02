@@ -5,49 +5,22 @@
 
 import sys
 import os
-import time
-import logging
-import traceback
 import yaml
-
-# 立即设置基本日志配置，确保最早捕获错误
-def setup_early_logging():
-    """设置早期日志配置"""
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler("app_debug.log"),
-            logging.StreamHandler()
-        ]
-    )
-
-# 立即设置日志
-setup_early_logging()
-logger = logging.getLogger(__name__)
-logger.info("程序开始启动...")
+import re
 
 # 添加当前目录到路径，确保可以导入模块
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    # 尝试导入主要模块
-    logger.info("尝试导入模块...")
     from TokenizerComparator import TokenizerComparator
     from TrainingTimeEstimator import TrainingTimeEstimator
-    logger.info("模块导入成功")
 except ImportError as e:
-    logger.error(f"导入模块失败: {e}")
-    logger.error(traceback.format_exc())
     print(f"导入模块失败: {e}")
-    print("请确保TokenizerComparator.py和TrainingTimeEstimator.py在同一目录下")
-    input("按任意键退出...")
     sys.exit(1)
 
 def resource_path(relative_path):
     """获取资源的绝对路径"""
     try:
-        # PyInstaller创建临时文件夹，将路径存储在_MEIPASS中
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
@@ -60,58 +33,104 @@ def is_frozen():
 
 def ask_for_restart():
     """询问用户是否重新开始"""
-    max_attempts = 3
-    attempts = 0
-    
-    while attempts < max_attempts:
-        try:
-            choice = input("\n是否进行下一次时间估算? (Y/N): ").strip().lower()
-            if choice in ['y', 'yes']:
-                print("\n" + "="*60)
-                print("开始新一轮估算...")
-                print("="*60)
-                return True
-            elif choice in ['n', 'no']:
-                print("感谢使用，再见!")
-                return False
-            else:
-                print("请输入 Y 或 N")
-                attempts += 1
-        except Exception as e:
-            logging.error(f"获取用户输入时出错: {e}")
-            attempts += 1
-            if attempts >= max_attempts:
-                print("输入错误次数过多，程序将退出。")
-                return False
-    
-    return False
+    choice = input("\n是否进行下一次时间估算? (Y/N): ").strip().lower()
+    if choice in ['y', 'yes']:
+        print("\n" + "="*60)
+        print("开始新一轮估算...")
+        print("="*60)
+        return True
+    elif choice in ['n', 'no']:
+        print("感谢使用，再见!")
+        return False
+    else:
+        print("请输入 Y 或 N")
+        return ask_for_restart()
 
-def setup_logging():
-    """设置日志配置"""
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler("app.log", encoding='utf-8'),
-            logging.StreamHandler()
-        ]
-    )
+def parse_dataset_size(size_str):
+    """
+    解析带单位的数据集大小字符串，返回KB值
+    
+    Args:
+        size_str: 带单位的数据集大小字符串 (如: "10GB", "500MB", "1.5TB")
+    
+    Returns:
+        数据集大小的KB值
+    """
+    # 使用正则表达式匹配数字和单位
+    match = re.match(r"^\s*([\d.]+)\s*([KMGTP]?B?)\s*$", size_str, re.IGNORECASE)
+    if not match:
+        raise ValueError("无效的数据集大小格式")
+    
+    size = float(match.group(1))
+    unit = match.group(2).upper()
+    
+    # 根据单位转换为KB
+    if unit in ["KB", "K"]:
+        return size
+    elif unit in ["MB", "M"]:
+        return size * 1024
+    elif unit in ["GB", "G"]:
+        return size * 1024 * 1024
+    elif unit in ["TB", "T"]:
+        return size * 1024 * 1024 * 1024
+    else:
+        # 默认单位为KB
+        return size
+
+def get_target_dataset_size():
+    """获取用户输入的目标数据集大小（带单位）"""
+    while True:
+        try:
+            size_input = input("\n请输入您计划使用的数据集大小(可带单位: KB/MB/GB/TB): ").strip()
+            size_kb = parse_dataset_size(size_input)
+            if size_kb > 0:
+                return size_kb
+            else:
+                print("数据集大小必须大于0")
+        except ValueError as e:
+            print(f"输入错误: {e}")
+
+def scale_tokens_by_dataset_size(total_tokens_dict, default_dataset_size_kb, target_dataset_size_kb):
+    """
+    根据目标数据集大小缩放token数量
+    
+    Args:
+        total_tokens_dict: 原始token数量字典
+        default_dataset_size_kb: 默认数据集大小(KB)
+        target_dataset_size_kb: 目标数据集大小(KB)
+    
+    Returns:
+        缩放后的token数量字典
+    """
+    # 计算缩放比例
+    scale_factor = target_dataset_size_kb / default_dataset_size_kb
+    
+    # 缩放每个模型的token数量
+    scaled_tokens_dict = {}
+    for model_name, token_count in total_tokens_dict.items():
+        scaled_tokens_dict[model_name] = int(token_count * scale_factor)
+    
+    return scaled_tokens_dict
+
+def format_size_kb(size_kb):
+    """将KB大小格式化为更易读的格式"""
+    if size_kb >= 1024 * 1024 * 1024:  # TB
+        return f"{size_kb / (1024 * 1024 * 1024):.2f} TB"
+    elif size_kb >= 1024 * 1024:  # GB
+        return f"{size_kb / (1024 * 1024):.2f} GB"
+    elif size_kb >= 1024:  # MB
+        return f"{size_kb / 1024:.2f} MB"
+    else:  # KB
+        return f"{size_kb:.2f} KB"
 
 def run_tokenizer_comparison(comparator):
     """运行tokenizer比较并返回结果"""
-    # 提供交互式数据集选择
-    print("\n请选择数据集:")
-    for i, dataset in enumerate(comparator.dataset_options, 1):
-        print(f"{i}. {dataset['name']}")
+    # 使用第一个数据集，不再让用户选择
+    dataset_choice_idx = 0
     
-    try:
-        dataset_choice_idx = int(input("\n请输入数据集编号: ")) - 1
-        if dataset_choice_idx < 0 or dataset_choice_idx >= len(comparator.dataset_options):
-            print("无效的选择!")
-            return None, None, None
-    except ValueError:
-        print("请输入有效的数字!")
-        return None, None, None
+    # 输出使用的数据集信息
+    dataset_name = comparator.dataset_options[dataset_choice_idx]['name']
+    print(f"\n使用默认数据集: {dataset_name}")
     
     # 提供交互式模型选择
     print("\n请选择要比较的模型 (可多选，用逗号分隔):")
@@ -138,19 +157,17 @@ def run_tokenizer_comparison(comparator):
             selected_model_indices = [i for i, m in enumerate(comparator.model_options) if not m.get('is_all_option', False)]
             print("已选择所有模型")
     except ValueError:
-        print("请输入有效的数字!")
-        return None, None, None
+        return None, None, None, None, None
     
     if not selected_model_indices:
-        print("未选择有效模型!")
-        return None, None, None
+        return None, None, None, None, None
     
     # 加载数据集文本
     print("正在加载数据集...")
     dataset_texts = comparator.load_dataset_texts(dataset_choice_idx)
     if not dataset_texts:
         print("无法加载数据集!")
-        return None, None, None
+        return None, None, None, None, None
     
     print(f"成功加载 {len(dataset_texts)} 个样本")
     
@@ -159,7 +176,7 @@ def run_tokenizer_comparison(comparator):
     successful_models = comparator.load_tokenizers(selected_model_indices)
     if not successful_models:
         print("未能加载任何tokenizer!")
-        return None, None, None
+        return None, None, None, None, None
     
     # 进行处理
     print("开始处理数据集...")
@@ -179,168 +196,82 @@ def run_tokenizer_comparison(comparator):
                 total_tokens = results['models'][model_name]['total_tokens']
                 total_tokens_dict[model_name] = total_tokens
     
-    return results, model_names, total_tokens_dict
-
-def display_comparison_results(results, model_names, total_tokens_dict):
-    """显示比较结果"""
-    try:
-        if not results:
-            print("没有比较结果可显示")
-            return
-        
-        print(f"\n总字节数: {results['total_bytes']:,}")
-        print(f"样本数量: {results['sample_count']:,}")
-        
-        print("\n各模型tokenization统计:")
-        print("-" * 60)
-        
-        for model_name in model_names:
-            if model_name in results['models']:
-                model_data = results['models'][model_name]
-                
-                if model_data['error_count'] > 0:
-                    print(f"{model_name:20s}: 错误数: {model_data['error_count']}")
-                else:
-                    compression_ratio = results['total_bytes'] / model_data['total_tokens']
-                    print(f"{model_name:20s}: {model_data['total_tokens']:,} tokens, "
-                          f"压缩比: {compression_ratio:.2f} 字节/token")
-    except Exception as e:
-        logging.error(f"显示比较结果时出错: {e}")
-        logging.error(traceback.format_exc())
-        print(f"显示比较结果时出错: {e}")
+    # 获取默认数据集大小(KB)
+    default_dataset_size_kb = results['total_bytes'] / 1024
+    
+    return results, model_names, total_tokens_dict, default_dataset_size_kb, selected_model_indices
 
 def run_training_time_estimation(total_tokens_dict):
     """运行训练时间估算"""
     try:
         estimator = TrainingTimeEstimator()
-        estimator.running_train(total_tokens_dict)  # 使用新的running_train方法
+        estimator.running_train(total_tokens_dict)
     except Exception as e:
-        logging.error(f"训练时间估算出错: {e}")
-        logging.error(traceback.format_exc())
         print(f"训练时间估算出错: {e}")
-        # 即使出错也停留在结果页面
-        input("按回车键返回主菜单...")
-
-def validate_paths(config):
-    """验证配置中的路径是否存在"""
-    for dataset in config.get('datasets', []):
-        if 'local_path' in dataset:
-            abs_path = resource_path(dataset['local_path'])
-            if not os.path.exists(abs_path):
-                logging.warning(f"数据集本地路径不存在: {abs_path}")
-    
-    for model in config.get('models', []):
-        if 'local_path' in model:
-            abs_path = resource_path(model['local_path'])
-            if not os.path.exists(abs_path):
-                logging.warning(f"模型本地路径不存在: {abs_path}")
 
 def main():
     """主函数，整合两个模块的功能"""
-    # 设置日志
-    setup_logging()
-    
     try:
         # 设置当前工作目录
         if is_frozen():
-            # 如果是打包环境，设置工作目录为EXE所在目录
             os.chdir(os.path.dirname(sys.executable))
         
-        logging.info("程序启动成功")
-
-        try:
-            config_path = resource_path("config.yaml")
-            if os.path.exists(config_path):
-                with open(config_path, 'r', encoding='utf-8') as f:
-                    config = yaml.safe_load(f)
-                validate_paths(config)
+        while True:
+            print("="*60)
+            print("       多模型Tokenizer对比与训练时间估算工具")
+            print("="*60)
+            
+            # 初始化比较器
+            comparator = TokenizerComparator()
+            
+            # 运行tokenizer比较
+            results, model_names, total_tokens_dict, default_dataset_size_kb, selected_model_indices = run_tokenizer_comparison(comparator)
+            
+            if not results or not total_tokens_dict:
+                print("Tokenizer比较失败，无法继续估算训练时间")
+                if not ask_for_restart():
+                    break
+                continue
+            
+            # 检查是否选择了"全部模型"
+            all_model_idx = next((i for i, m in enumerate(comparator.model_options) if m.get('is_all_option', False)), -1)
+            is_all_selected = all_model_idx != -1 and all_model_idx in selected_model_indices
+            
+            # 显示默认数据集信息
+            print(f"\n默认数据集大小: {format_size_kb(default_dataset_size_kb)}")
+            
+            # 获取用户输入的目标数据集大小
+            target_dataset_size_kb = get_target_dataset_size()
+            
+            # 根据目标数据集大小缩放token数量
+            scaled_tokens_dict = scale_tokens_by_dataset_size(
+                total_tokens_dict, default_dataset_size_kb, target_dataset_size_kb
+            )
+            
+            # 显示缩放后的token数量
+            print(f"\n目标数据集大小: {format_size_kb(target_dataset_size_kb)}")
+            
+            # 如果选择了全部模型，只显示deepseek和qwen模型的token数量
+            if is_all_selected:
+                print("各模型在目标数据集上的估算token数量:")
+                for model_name, token_count in scaled_tokens_dict.items():
+                    if "deepseek" in model_name.lower() or "qwen" in model_name.lower():
+                        print(f"  {model_name}: {token_count:,} tokens")
             else:
-                logging.warning("配置文件不存在，跳过路径验证")
-        except Exception as e:
-            logging.warning(f"路径验证失败: {e}")
-        
-        while True:  # 添加循环，支持重复运行
-            try:
-                print("="*60)
-                print("       多模型Tokenizer对比与训练时间估算工具")
-                print("="*60)
+                # 只显示选中的模型
+                print("各模型在目标数据集上的估算token数量:")
+                for model_name, token_count in scaled_tokens_dict.items():
+                    print(f"  {model_name}: {token_count:,} tokens")
+            
+            # 运行训练时间估算
+            run_training_time_estimation(scaled_tokens_dict)
+            
+            # 询问用户是否重新开始
+            if not ask_for_restart():
+                break
                 
-                # 初始化比较器
-                comparator = TokenizerComparator()
-                
-                # 运行tokenizer比较
-                print("\n1. 运行Tokenizer比较...")
-                start_time = time.time()
-                results, model_names, total_tokens_dict = run_tokenizer_comparison(comparator)
-                end_time = time.time()
-                print(f"Tokenizer比较完成，耗时: {end_time - start_time:.2f} 秒")
-                
-                if not results or not total_tokens_dict:
-                    print("Tokenizer比较失败，无法继续估算训练时间")
-                    # 询问用户是否重新开始
-                    if not ask_for_restart():
-                        break
-                    continue
-                
-                # 显示比较结果
-                print("\n2. Tokenizer比较结果:")
-                display_comparison_results(results, model_names, total_tokens_dict)
-                
-                 # 运行训练时间估算
-                print("\n3. 运行训练时间估算...")
-                run_training_time_estimation(total_tokens_dict)
-                
-                # 添加结果页面停留功能
-                print("\n" + "="*60)
-                print("           结果展示")
-                print("="*60)
-                
-                # 显示tokenizer比较结果
-                print("\nTokenizer比较结果:")
-                display_comparison_results(results, model_names, total_tokens_dict)
-                
-                # 询问用户是否重新开始
-                if not ask_for_restart():
-                    # 添加最终停留
-                    print("\n程序执行完毕，结果如上所示。")
-                    input("按回车键退出程序...")
-                    break
-                    
-            except Exception as e:
-                logging.error(f"程序运行出错: {e}")
-                logging.error(traceback.format_exc())
-                print(f"程序运行出错: {e}")
-                # 询问用户是否重新开始
-                if not ask_for_restart():
-                    # 添加错误情况下的停留
-                    input("按回车键退出程序...")
-                    break
-                    
     except Exception as e:
-        logging.error(f"程序初始化失败: {e}")
-        logging.error(traceback.format_exc())
         print(f"程序初始化失败: {e}")
-        input("按回车键退出...")
-
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        # 创建紧急日志文件
-        with open("crash_log.txt", "w") as f:
-            f.write(f"程序崩溃: {e}\n")
-            import traceback
-            f.write(traceback.format_exc())
-        
-        # 也尝试使用日志记录
-        try:
-            logging.error(f"程序崩溃: {e}")
-            logging.error(traceback.format_exc())
-        except:
-            pass  # 如果日志系统也失败了，至少我们有crash_log.txt
-            
-        input("程序发生错误，按任意键退出...")
-
-
-
+    main()
