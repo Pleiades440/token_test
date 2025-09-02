@@ -9,6 +9,8 @@ import pyarrow as pa
 import time
 import logging
 import traceback
+import ijson
+import json
 
 # 设置日志
 logging.basicConfig(
@@ -71,73 +73,116 @@ class TokenizerComparator:
             self.logger.error(traceback.format_exc())
             raise
     
+
     def _load_local_dataset(self, path):
-        """从本地路径加载数据集 - 简化版"""
+        """从本地路径加载数据集 - 简化版，支持JSONL"""
         try:
-            # 处理路径
+            # 处理路径（保持原样）
             if is_frozen():
                 path = resource_path(path)
             elif not os.path.isabs(path):
                 current_dir = os.path.dirname(os.path.abspath(__file__))
                 path = os.path.join(current_dir, path)
-            
+
             path = os.path.normpath(path)
             self.logger.info(f"尝试加载数据集: {path}")
-            
+
             if not os.path.exists(path):
                 self.logger.error(f"路径不存在: {path}")
                 return None
+
+            texts = []  # 在外部定义 texts，确保所有分支都能访问
             
-            # 如果是目录，直接读取其中的 arrow 文件
-            if os.path.isdir(path):
-                self.logger.info(f"路径是目录: {path}")
+            # 处理 JSONL 文件
+            if os.path.isfile(path) and path.endswith('.jsonl'):
+                self.logger.info(f"检测到JSONL文件: {path}")
+                line_count = 0
+                error_count = 0
                 
-                # 查找所有 arrow 文件
-                arrow_files = []
-                for file in os.listdir(path):
-                    if file.endswith('.arrow'):
-                        arrow_files.append(os.path.join(path, file))
+                try:
+                    # 使用文本模式打开文件，逐行读取
+                    with open(path, 'r', encoding='utf-8') as file:
+                        for line in file:
+                            line_count += 1
+                            line = line.strip()
+                            if not line:  # 跳过空行
+                                continue
+                                
+                            try:
+                                # 直接使用json.loads解析每行
+                                obj = json.loads(line)
+                                # 尝试从对象中提取文本
+                                extracted_text = self._extract_text_from_json(obj)
+                                if extracted_text:
+                                    texts.append(extracted_text)
+                                else:
+                                    # 如果提取失败，记录一条警告并将整个对象转换为字符串作为后备
+                                    self.logger.warning(f"第{line_count}行: 从JSON对象中提取文本失败，使用后备方案: {str(obj)[:200]}...")
+                                    texts.append(str(obj))
+                                    
+                            except json.JSONDecodeError as e:
+                                error_count += 1
+                                # 记录错误但继续处理其他行
+                                self.logger.warning(f"第{line_count}行: JSON解析错误: {e}")
+                                # 将原始行作为文本添加
+                                texts.append(line)
+                                
+                except Exception as e:
+                    self.logger.error(f"读取JSONL文件时出错: {e}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
+                    return None
+
+                self.logger.info(f"从JSONL文件中成功加载 {len(texts)} 个文本样本，共处理 {line_count} 行，遇到 {error_count} 个错误")
+                return texts
+
+            # 处理普通JSON文件
+            elif os.path.isfile(path) and path.endswith('.json'):
+                self.logger.info("处理标准JSON格式文件")
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
                 
-                if not arrow_files:
-                    self.logger.error(f"目录中没有找到 arrow 文件: {path}")
+                # 记录数据结构以帮助调试
+                self.logger.info(f"JSON数据结构: {type(data)}")
+                if isinstance(data, list) and len(data) > 0:
+                    self.logger.info(f"第一个元素的类型: {type(data[0])}")
+                    if isinstance(data[0], dict):
+                        self.logger.info(f"第一个元素的键: {list(data[0].keys())}")
+                
+                # 处理数组格式的JSON
+                if isinstance(data, list):
+                    for i, item in enumerate(data):
+                        if i < 3:  # 记录前几个元素的信息
+                            extracted = self._extract_text_from_json(item)
+                            self.logger.info(f"第{i+1}个元素提取的文本: {extracted[:100] if extracted else '无文本提取'}...")
+                        
+                        text = self._extract_text_from_json(item)
+                        if text:
+                            texts.append(text)
+                # 处理对象格式的JSON
+                elif isinstance(data, dict):
+                    text = self._extract_text_from_json(data)
+                    if text:
+                        texts.append(text)
+                else:
+                    self.logger.error(f"不支持的JSON格式: {type(data)}")
                     return None
                 
-                # 按文件名排序，确保顺序一致
-                arrow_files.sort()
+                self.logger.info(f"成功加载 {len(texts)} 个文本样本")
+                return texts
                 
-                # 读取所有 arrow 文件并合并
-                all_texts = []
-                for arrow_file in arrow_files:
-                    try:
-                        self.logger.info(f"读取 arrow 文件: {arrow_file}")
-                        dataset = datasets.Dataset.from_file(arrow_file)
-                        
-                        # 尝试获取文本列
-                        text_columns = [col for col in dataset.column_names if col in ['text', 'content', 'article']]
-                        if text_columns:
-                            texts = dataset[text_columns[0]]
-                        else:
-                            # 如果没有找到标准文本列，使用第一列
-                            texts = dataset[dataset.column_names[0]]
-                        
-                        all_texts.extend(texts)
-                        
-                    except Exception as e:
-                        self.logger.error(f"读取 arrow 文件失败: {arrow_file}, 错误: {e}")
-                        continue
-                
-                if not all_texts:
-                    self.logger.error("未能从 arrow 文件中提取任何文本")
+            # 处理其他文件格式（如TXT）
+            elif os.path.isfile(path) and path.endswith('.txt'):
+                self.logger.info(f"处理文本文件: {path}")
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        texts = f.read().splitlines()
+                    self.logger.info(f"从文本文件中成功加载 {len(texts)} 行文本")
+                    return texts
+                except Exception as e:
+                    self.logger.error(f"读取文本文件时出错: {e}")
                     return None
                     
-                self.logger.info(f"成功加载 {len(all_texts)} 个文本样本")
-                return all_texts
-                
-            # 如果是文件，直接读取
-            elif os.path.isfile(path) and path.endswith('.txt'):
-                self.logger.info(f"路径是文本文件: {path}")
-                with open(path, 'r', encoding='utf-8') as f:
-                    return f.read().splitlines()
             else:
                 self.logger.error(f"不支持的文件格式: {path}")
                 return None
@@ -147,6 +192,85 @@ class TokenizerComparator:
             import traceback
             self.logger.error(traceback.format_exc())
             return None
+    
+
+    def _extract_text_from_json(self, item):
+        """从JSON对象中提取文本内容"""
+        if isinstance(item, dict):
+            # 处理问答格式的数据 (instruction + input + output)
+            if all(key in item for key in ['instruction', 'input', 'output']):
+                # 组合instruction、input和output字段
+                parts = []
+                
+                # 添加instruction
+                if item.get('instruction'):
+                    parts.append(str(item['instruction']))
+                
+                # 添加input (如果有内容)
+                if item.get('input'):
+                    parts.append(str(item['input']))
+                
+                # 添加output (如果有内容)
+                if item.get('output'):
+                    parts.append(str(item['output']))
+                
+                if parts:
+                    return "\n".join(parts)
+            
+            # 原有的其他提取逻辑保持不变
+            text_fields = ['text', 'content', 'article', 'body', 'question', 'input', 'output', 
+                        'prompt', 'context', 'answer', 'choices', 'option', 'options', 'instruction']
+            
+            for field in text_fields:
+                if field in item and item[field]:
+                    value = item[field]
+                    if isinstance(value, str):
+                        return value
+                    elif isinstance(value, list):
+                        # 如果是列表，尝试连接所有字符串元素
+                        text_parts = []
+                        for part in value:
+                            if isinstance(part, str):
+                                text_parts.append(part)
+                            elif isinstance(part, dict):
+                                # 如果是字典，递归提取
+                                nested_text = self._extract_text_from_json(part)
+                                if nested_text:
+                                    text_parts.append(nested_text)
+                        if text_parts:
+                            return " ".join(text_parts)
+            
+            # 如果没有找到标准字段，尝试所有字符串值
+            for key, value in item.items():
+                if isinstance(value, str) and value:
+                    return value
+                elif isinstance(value, list) and value and isinstance(value[0], str):
+                    # 如果是字符串列表，连接它们
+                    return " ".join(value)
+                    
+            # 如果还没有找到，尝试嵌套查找
+            for value in item.values():
+                if isinstance(value, dict):
+                    nested_text = self._extract_text_from_json(value)
+                    if nested_text:
+                        return nested_text
+                elif isinstance(value, list) and value and isinstance(value[0], dict):
+                    # 如果是字典列表，递归处理每个字典
+                    text_parts = []
+                    for sub_item in value:
+                        nested_text = self._extract_text_from_json(sub_item)
+                        if nested_text:
+                            text_parts.append(nested_text)
+                    if text_parts:
+                        return " ".join(text_parts)
+                        
+        elif isinstance(item, str) and item:
+            return item
+        elif isinstance(item, list) and item and isinstance(item[0], str):
+            # 如果是字符串列表，连接它们
+            return " ".join(item)
+            
+        return None
     
     def _load_dataset_online(self, dataset_info):
         """从Hugging Face加载在线数据集"""

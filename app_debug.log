@@ -1,0 +1,14 @@
+2025-08-28 17:02:49,796 - INFO - 程序开始启动...
+2025-08-28 17:02:49,797 - INFO - 尝试导入模块...
+2025-08-28 17:02:55,703 - DEBUG - PyTorch version 2.8.0+cpu available.
+2025-08-28 17:02:56,057 - INFO - 模块导入成功
+2025-08-28 17:02:56,058 - INFO - 程序启动成功
+2025-08-28 17:02:56,058 - WARNING - 配置文件不存在，跳过路径验证
+2025-08-28 17:02:56,067 - INFO - 配置加载成功!
+2025-08-28 17:03:05,492 - INFO - 正在加载数据集: WikiText-103
+2025-08-28 17:03:05,493 - INFO - 数据集本地路径: C:\Users\czx\Desktop\token_test\data\wikitext-103-raw-v1
+2025-08-28 17:03:05,493 - INFO - 从本地路径加载数据集...
+2025-08-28 17:03:05,503 - INFO - 尝试加载数据集: C:\Users\czx\Desktop\token_test\data\wikitext-103-raw-v1
+2025-08-28 17:03:05,504 - INFO - 路径是目录: C:\Users\czx\Desktop\token_test\data\wikitext-103-raw-v1
+2025-08-28 17:03:05,504 - INFO - 读取 arrow 文件: C:\Users\czx\Desktop\token_test\data\wikitext-103-raw-v1\wikitext-test.arrow
+2025-08-28 17:03:05,618 - INFO - 读取 arrow 文件: C:\Users\czx\Desktop\token_test\data\wikitext-103-raw-v1\wikitext-train-00000-of-00002.arrow
