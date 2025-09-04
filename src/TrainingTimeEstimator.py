@@ -10,12 +10,6 @@ class TrainingTimeEstimator:
         # 默认使用华为昇腾910B显卡
         self.default_gpu = "华为昇腾910B"
         
-        # 效率因子
-        self.efficiency_factors = {
-            "single": 0.95,
-            "single_node": 0.85,
-            "multi_node": 0.65
-        }
     
     def load_config(self):
         """从YAML文件加载配置"""
@@ -80,19 +74,13 @@ class TrainingTimeEstimator:
         if throughput <= 0:
             raise ValueError(f"无效的吞吐量配置: {throughput}")
         
-        # 确定效率因子
-        if world_size == 1:
-            efficiency = self.efficiency_factors["single"]
-        elif world_size <= 8:
-            efficiency = self.efficiency_factors["single_node"]
-        else:
-            efficiency = self.efficiency_factors["multi_node"]
+
         
         # 计算总token处理量
         total_tokens = token_count * epochs
         
         # 计算训练时间 (秒)
-        training_time_seconds = total_tokens / (throughput * world_size * efficiency)
+        training_time_seconds = total_tokens / (throughput * world_size)
         
         return training_time_seconds, world_size, throughput
     

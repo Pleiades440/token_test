@@ -4,6 +4,7 @@ import subprocess
 import shutil
 import time
 import stat
+import re
 
 def remove_readonly(func, path, excinfo):
     """处理只读文件的删除"""
@@ -43,25 +44,25 @@ def build_exe():
     data_dir = os.path.join(project_root, 'data')
     models_dir = os.path.join(project_root, 'models')
     
-    # # 创建临时目录，只包含需要的数据文件
-    # temp_data_dir = os.path.join(project_root, 'temp_data')
-    # if os.path.exists(temp_data_dir):
-    #     safe_remove(temp_data_dir)
-    # os.makedirs(temp_data_dir)
+    # 创建临时目录，只包含需要的数据文件
+    temp_data_dir = os.path.join(project_root, 'temp_data')
+    if os.path.exists(temp_data_dir):
+        safe_remove(temp_data_dir)
+    os.makedirs(temp_data_dir)
     
-    # # 复制mmlu_dev文件夹到临时目录
-    # mmlu_dev_src = os.path.join(data_dir, 'mmlu_dev')
-    # mmlu_dev_dst = os.path.join(temp_data_dir, 'mmlu_dev')
-    # if os.path.exists(mmlu_dev_src):
-    #     shutil.copytree(mmlu_dev_src, mmlu_dev_dst)
-    #     print("已复制mmlu_dev数据文件到临时目录")
-    # else:
-    #     print(f"警告: mmlu_dev目录不存在: {mmlu_dev_src}")
+    # 复制mmlu_dev文件夹到临时目录
+    mmlu_dev_src = os.path.join(data_dir, 'mmlu_dev')
+    mmlu_dev_dst = os.path.join(temp_data_dir, 'mmlu_dev')
+    if os.path.exists(mmlu_dev_src):
+        shutil.copytree(mmlu_dev_src, mmlu_dev_dst)
+        print("已复制mmlu_dev数据文件到临时目录")
+    else:
+        print(f"警告: mmlu_dev目录不存在: {mmlu_dev_src}")
     
     # 使用PyInstaller打包（文件夹模式）
     cmd = [
         'pyinstaller',
-        '--add-data', f'{data_dir};data',
+        '--add-data', f'{temp_data_dir};data',
         '--add-data', f'{models_dir};models',
         '--add-data', 'src/config.yaml;.',
         '--hidden-import', 'yaml',
@@ -72,7 +73,7 @@ def build_exe():
         '--hidden-import', 'chardet',
         '--hidden-import', 'idna',
         '--collect-all', 'tokenizers',
-        '--onedir',
+        '--onedir',  # 改回目录模式，而不是单文件模式
         '--console',  # 改为使用控制台模式，避免stdin问题
         '--optimize', '2',
         '--name', 'TokenAnalyzer',
@@ -93,14 +94,19 @@ def build_exe():
         safe_remove(temp_data_dir)
         
         # 确保配置文件在正确的位置
-        dist_config_path = os.path.join(dist_dir, 'TokenAnalyzer', 'config.yaml')
-        if os.path.exists('src/config.yaml') and not os.path.exists(dist_config_path):
-            shutil.copy2('src/config.yaml', dist_config_path)
+        dist_dir = os.path.join(project_root, 'dist', 'TokenAnalyzer')
+        dist_config_path = os.path.join(dist_dir, 'config.yaml')
+        src_config_path = os.path.join(project_root, 'src', 'config.yaml')
+        
+        if os.path.exists(src_config_path) and not os.path.exists(dist_config_path):
+            # 确保目标目录存在
+            os.makedirs(os.path.dirname(dist_config_path), exist_ok=True)
+            shutil.copy2(src_config_path, dist_config_path)
             print("配置文件已复制到dist目录")
         
         # 修改代码中的资源路径获取方式
         # 更新run.py中的resource_path函数
-        run_py_path = os.path.join(dist_dir, 'TokenAnalyzer', 'run.py')
+        run_py_path = os.path.join(dist_dir, 'run.py')
         if os.path.exists(run_py_path):
             with open(run_py_path, 'r', encoding='utf-8') as f:
                 content = f.read()
@@ -125,7 +131,6 @@ def resource_path(relative_path):
 '''
             
             # 替换resource_path函数
-            import re
             old_pattern = r'def resource_path\(relative_path\):\s*""".*?"""\s*.*?return os\.path\.join\(base_path, relative_path\)'
             content = re.sub(old_pattern, new_resource_path, content, flags=re.DOTALL)
             
@@ -137,7 +142,7 @@ def resource_path(relative_path):
         print("运行dist/TokenAnalyzer/TokenAnalyzer.exe来启动程序")
         
         # 创建批处理文件用于调试（即使使用控制台模式也保留）
-        debug_bat = os.path.join(dist_dir, 'TokenAnalyzer', 'debug.bat')
+        debug_bat = os.path.join(dist_dir, 'debug.bat')
         with open(debug_bat, 'w') as f:
             f.write('@echo off\n')
             f.write('echo 正在启动TokenAnalyzer...\n')
