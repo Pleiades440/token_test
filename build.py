@@ -43,47 +43,35 @@ def build_exe():
     data_dir = os.path.join(project_root, 'data')
     models_dir = os.path.join(project_root, 'models')
     
-    if not os.path.exists(data_dir):
-        print(f"警告: 数据目录不存在: {data_dir}")
-        os.makedirs(data_dir, exist_ok=True)
+    # # 创建临时目录，只包含需要的数据文件
+    # temp_data_dir = os.path.join(project_root, 'temp_data')
+    # if os.path.exists(temp_data_dir):
+    #     safe_remove(temp_data_dir)
+    # os.makedirs(temp_data_dir)
     
-    if not os.path.exists(models_dir):
-        print(f"警告: 模型目录不存在: {models_dir}")
-        os.makedirs(models_dir, exist_ok=True)
+    # # 复制mmlu_dev文件夹到临时目录
+    # mmlu_dev_src = os.path.join(data_dir, 'mmlu_dev')
+    # mmlu_dev_dst = os.path.join(temp_data_dir, 'mmlu_dev')
+    # if os.path.exists(mmlu_dev_src):
+    #     shutil.copytree(mmlu_dev_src, mmlu_dev_dst)
+    #     print("已复制mmlu_dev数据文件到临时目录")
+    # else:
+    #     print(f"警告: mmlu_dev目录不存在: {mmlu_dev_src}")
     
     # 使用PyInstaller打包（文件夹模式）
     cmd = [
         'pyinstaller',
-        '--add-data', 'data;data',
-        '--add-data', 'models;models',
+        '--add-data', f'{data_dir};data',
+        '--add-data', f'{models_dir};models',
         '--add-data', 'src/config.yaml;.',
-        '--hidden-import', 'transformers.models.auto',
-        '--hidden-import', 'transformers.models.gpt2',
-        '--hidden-import', 'transformers.models.bert',
-        '--hidden-import', 'transformers.tokenization_utils',
-        '--hidden-import', 'transformers.file_utils',
-        '--hidden-import', 'datasets',
-        '--hidden-import', 'pyarrow',
         '--hidden-import', 'yaml',
-        '--hidden-import', 'torch',
-        '--hidden-import', 'torch._C',
-        '--hidden-import', 'torch._VF',
-        '--hidden-import', 'torch.distributed',
-        '--hidden-import', 'torch.distributed.rpc',
-        '--hidden-import', 'torch.distributed.optim',
-        '--hidden-import', 'torch.distributed.algorithms',
-        '--hidden-import', 'torch.multiprocessing',
-        '--hidden-import', 'torch._dynamo', 
-        '--hidden-import', 'torch._inductor', 
+        '--hidden-import', 'tqdm',
+        '--hidden-import', 'tokenizers',
         '--hidden-import', 'requests',
         '--hidden-import', 'urllib3',
         '--hidden-import', 'chardet',
         '--hidden-import', 'idna',
-        '--hidden-import', 'numpy',
-        '--hidden-import', 'tqdm',
-        '--hidden-import', 'tokenizers',
         '--collect-all', 'tokenizers',
-        '--collect-all', 'transformers',
         '--onedir',
         '--console',  # 改为使用控制台模式，避免stdin问题
         '--optimize', '2',
@@ -101,27 +89,49 @@ def build_exe():
     if result.returncode == 0:
         print("Build successful!")
         
-        # 复制所有数据文件
-        if os.path.exists(data_dir):
-            dist_data_dir = os.path.join(dist_dir, 'TokenAnalyzer', 'data')
-            if os.path.exists(dist_data_dir):
-                safe_remove(dist_data_dir)
-            shutil.copytree(data_dir, dist_data_dir)
-            print("数据文件已复制到dist目录")
-        
-        # 复制所有模型文件
-        if os.path.exists(models_dir):
-            dist_models_dir = os.path.join(dist_dir, 'TokenAnalyzer', 'models')
-            if os.path.exists(dist_models_dir):
-                safe_remove(dist_models_dir)
-            shutil.copytree(models_dir, dist_models_dir)
-            print("模型文件已复制到dist目录")
+        # 清理临时数据目录
+        safe_remove(temp_data_dir)
         
         # 确保配置文件在正确的位置
         dist_config_path = os.path.join(dist_dir, 'TokenAnalyzer', 'config.yaml')
         if os.path.exists('src/config.yaml') and not os.path.exists(dist_config_path):
             shutil.copy2('src/config.yaml', dist_config_path)
             print("配置文件已复制到dist目录")
+        
+        # 修改代码中的资源路径获取方式
+        # 更新run.py中的resource_path函数
+        run_py_path = os.path.join(dist_dir, 'TokenAnalyzer', 'run.py')
+        if os.path.exists(run_py_path):
+            with open(run_py_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # 修改resource_path函数，优先检查当前目录下的data和models文件夹
+            new_resource_path = '''
+def resource_path(relative_path):
+    """获取资源的绝对路径"""
+    # 首先检查当前目录下是否存在该文件
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    local_path = os.path.join(current_dir, relative_path)
+    if os.path.exists(local_path):
+        return local_path
+    
+    # 如果当前目录下不存在，则检查打包环境
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+'''
+            
+            # 替换resource_path函数
+            import re
+            old_pattern = r'def resource_path\(relative_path\):\s*""".*?"""\s*.*?return os\.path\.join\(base_path, relative_path\)'
+            content = re.sub(old_pattern, new_resource_path, content, flags=re.DOTALL)
+            
+            with open(run_py_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            print("已修改run.py中的资源路径获取方式")
         
         print("\n打包完成! 请查看dist/TokenAnalyzer目录")
         print("运行dist/TokenAnalyzer/TokenAnalyzer.exe来启动程序")
@@ -143,6 +153,8 @@ def build_exe():
         print("Build failed:")
         print(result.stdout)
         print(result.stderr)
+        # 清理临时数据目录
+        safe_remove(temp_data_dir)
 
 if __name__ == '__main__':
     start_time = time.time()
