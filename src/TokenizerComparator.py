@@ -1,9 +1,7 @@
 import os
 import sys
 import yaml
-from tokenizers import Tokenizer, pre_tokenizers, decoders, processors  # 主要导入 tokenizers
-from tokenizers.models import BPE, WordPiece, Unigram  # 根据需要导入模型类型
-from tokenizers.normalizers import NFKC, Lowercase, StripAccents  # 导入标准化器
+from tokenizers import Tokenizer
 import json
 from tqdm import tqdm
 

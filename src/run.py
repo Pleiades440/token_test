@@ -5,7 +5,6 @@
 
 import sys
 import os
-import yaml
 import re
 
 # 添加当前目录到路径，确保可以导入模块
