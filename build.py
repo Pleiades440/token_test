@@ -5,7 +5,6 @@ import shutil
 import time
 import stat
 import re
-import multiprocessing
 
 def remove_readonly(func, path, excinfo):
     """处理只读文件的删除"""
@@ -30,15 +29,10 @@ def build_exe():
     # 获取项目根目录
     project_root = os.path.dirname(os.path.abspath(__file__))
     
-    # 询问是否清理旧文件
-    clean = input("是否清理旧文件? (y/N): ").strip().lower()
-    if clean == 'y':
-        print("清理旧文件...")
-        safe_remove('dist')
-        safe_remove('build')
-        safe_remove('TokenAnalyzer.spec')
-    else:
-        print("跳过清理，使用缓存")
+    safe_remove('dist')
+    safe_remove('build')
+    safe_remove('TokenAnalyzer.spec')
+
     
     # 确保dist目录存在
     dist_dir = os.path.join(project_root, 'dist')
@@ -102,8 +96,6 @@ def build_exe():
     else:
         print(f"UPX 未找到于: {upx_exe}")
     
-    # 注意：PyInstaller 不支持 --jobs 参数，已移除
-    
     print("Building application...")
     print("Command:", ' '.join(cmd))
     
@@ -137,45 +129,6 @@ def build_exe():
                 f.write('注意事项:\n')
                 f.write('- 确保系统已安装必要的运行时库\n')
                 f.write('- 程序可能需要几分钟时间加载模型\n')
-        
-        # 询问是否修改资源路径
-        modify_resource = input("是否修改资源路径函数? (y/N): ").strip().lower()
-        if modify_resource == 'y':
-            # 修改代码中的资源路径获取方式
-            # 更新run.py中的resource_path函数
-            run_py_path = os.path.join(project_root, 'src', 'run.py')
-            if os.path.exists(run_py_path):
-                with open(run_py_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                # 修改resource_path函数，优先检查当前目录下的data和models文件夹
-                new_resource_path = '''
-def resource_path(relative_path):
-    """获取资源的绝对路径"""
-    # 首先检查当前目录下是否存在该文件
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    local_path = os.path.join(current_dir, relative_path)
-    if os.path.exists(local_path):
-        return local_path
-    
-    # 如果当前目录下不存在，则检查打包环境
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    
-    return os.path.join(base_path, relative_path)
-'''
-                
-                # 替换resource_path函数
-                old_pattern = r'def resource_path\(relative_path\):\s*""".*?"""\s*.*?return os\.path\.join\(base_path, relative_path\)'
-                content = re.sub(old_pattern, new_resource_path, content, flags=re.DOTALL)
-                
-                with open(run_py_path, 'w', encoding='utf-8') as f:
-                    f.write(content)
-                print("已修改run.py中的资源路径获取方式")
-        else:
-            print("跳过资源路径修改")
         
         print("\n打包完成! 请查看dist目录中的TokenAnalyzer.exe")
         print("运行dist/TokenAnalyzer.exe来启动程序")

@@ -6,17 +6,40 @@
 import sys
 import os
 import re
+import traceback
 
 # 添加当前目录到路径，确保可以导入模块
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-try:
-    from TokenizerComparator import TokenizerComparator
-    from TrainingTimeEstimator import TrainingTimeEstimator
-except ImportError as e:
-    print(f"导入模块失败: {e}")
-    sys.exit(1)
+# 延迟导入模块，减少启动时间
+_tokenizer_comparator = None
+_training_time_estimator = None
 
+def get_tokenizer_comparator():
+    """延迟加载TokenizerComparator"""
+    global _tokenizer_comparator
+    if _tokenizer_comparator is None:
+        try:
+            from TokenizerComparator import TokenizerComparator
+            _tokenizer_comparator = TokenizerComparator()
+        except Exception as e:
+            print(f"加载 TokenizerComparator 失败: {e}")
+            traceback.print_exc()
+            return None
+    return _tokenizer_comparator
+
+def get_training_time_estimator():
+    """延迟加载TrainingTimeEstimator"""
+    global _training_time_estimator
+    if _training_time_estimator is None:
+        try:
+            from TrainingTimeEstimator import TrainingTimeEstimator
+            _training_time_estimator = TrainingTimeEstimator()
+        except Exception as e:
+            print(f"加载 TrainingTimeEstimator 失败: {e}")
+            traceback.print_exc()
+            return None
+    return _training_time_estimator
 
 def resource_path(relative_path):
     """获取资源的绝对路径"""
@@ -33,7 +56,6 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     
     return os.path.join(base_path, relative_path)
-
 
 def is_frozen():
     """检查是否在打包环境中运行"""
@@ -131,8 +153,21 @@ def format_size_kb(size_kb):
     else:  # KB
         return f"{size_kb:.2f} KB"
 
-def run_tokenizer_comparison(comparator):
+def run_tokenizer_comparison():
     """运行tokenizer比较并返回结果"""
+    # 延迟加载比较器
+    comparator = get_tokenizer_comparator()
+    if comparator is None:
+        return None, None, None, None, None
+    
+    # 确保配置已加载
+    comparator.load_config()
+    
+    # 检查数据集选项是否为空
+    if not comparator.dataset_options:
+        print("配置文件中没有定义数据集!")
+        return None, None, None, None, None
+    
     # 使用第一个数据集，不再让用户选择
     dataset_choice_idx = 0
     
@@ -212,10 +247,15 @@ def run_tokenizer_comparison(comparator):
 def run_training_time_estimation(total_tokens_dict):
     """运行训练时间估算"""
     try:
-        estimator = TrainingTimeEstimator()
+        # 延迟加载估算器
+        estimator = get_training_time_estimator()
+        if estimator is None:
+            print("无法加载训练时间估算器")
+            return
         estimator.running_train(total_tokens_dict)
     except Exception as e:
         print(f"训练时间估算出错: {e}")
+        traceback.print_exc()
 
 def main():
     """主函数，整合两个模块的功能"""
@@ -229,11 +269,8 @@ def main():
             print("       多模型Tokenizer对比与训练时间估算工具")
             print("="*60)
             
-            # 初始化比较器
-            comparator = TokenizerComparator()
-            
             # 运行tokenizer比较
-            results, model_names, total_tokens_dict, default_dataset_size_kb, selected_model_indices = run_tokenizer_comparison(comparator)
+            results, model_names, total_tokens_dict, default_dataset_size_kb, selected_model_indices = run_tokenizer_comparison()
             
             if not results or not total_tokens_dict:
                 print("Tokenizer比较失败，无法继续估算训练时间")
@@ -242,6 +279,7 @@ def main():
                 continue
             
             # 检查是否选择了"全部模型"
+            comparator = get_tokenizer_comparator()
             all_model_idx = next((i for i, m in enumerate(comparator.model_options) if m.get('is_all_option', False)), -1)
             is_all_selected = all_model_idx != -1 and all_model_idx in selected_model_indices
             
@@ -280,6 +318,8 @@ def main():
                 
     except Exception as e:
         print(f"程序初始化失败: {e}")
+        traceback.print_exc()
+        input("按任意键退出...")  # 等待用户按键，以便查看错误信息
 
 if __name__ == "__main__":
     main()

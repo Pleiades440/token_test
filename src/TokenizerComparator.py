@@ -4,13 +4,22 @@ import yaml
 from tokenizers import Tokenizer
 import json
 from tqdm import tqdm
+import traceback
 
 def resource_path(relative_path):
     """获取资源的绝对路径"""
+    # 首先检查当前目录下是否存在该文件
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    local_path = os.path.join(current_dir, relative_path)
+    if os.path.exists(local_path):
+        return local_path
+    
+    # 如果当前目录下不存在，则检查打包环境
     try:
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.getcwd()
+        base_path = os.path.abspath(".")
+    
     return os.path.join(base_path, relative_path)
 
 def is_frozen():
@@ -26,26 +35,54 @@ class TokenizerComparator:
             current_dir = os.path.dirname(os.path.abspath(__file__))
             config_path = os.path.join(current_dir, config_path)
         
+        self.config_path = config_path
         self.tokenizers = {}
-        self.load_config(config_path)
+        # 延迟加载配置
+        self.dataset_options = []
+        self.model_options = []
+        self.default_dataset = None
     
-    def load_config(self, config_path):
-        """从YAML文件加载配置"""
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-            
-        # 数据集配置 - 只保留第一个数据集
-        self.dataset_options = config.get('datasets', [])
-        if self.dataset_options:
-            self.default_dataset = self.dataset_options[0]
-        else:
-            self.default_dataset = {
-                'name': 'Default Dataset',
-                'local_path': 'data/default_dataset.jsonl'
-            }
-        
-        # 模型配置
-        self.model_options = config.get('models', [])
+    def load_config(self):
+        """从YAML文件加载配置（延迟加载）"""
+        if not self.dataset_options:  # 如果配置未加载，则加载
+            try:
+                # 确保配置文件存在
+                if not os.path.exists(self.config_path):
+                    print(f"配置文件不存在: {self.config_path}")
+                    # 设置默认值
+                    self.dataset_options = []
+                    self.model_options = []
+                    self.default_dataset = {
+                        'name': 'Default Dataset',
+                        'local_path': 'data/default_dataset.jsonl'
+                    }
+                    return
+                
+                with open(self.config_path, 'r', encoding='utf-8') as f:
+                    config = yaml.safe_load(f)
+                    
+                # 数据集配置 - 只保留第一个数据集
+                self.dataset_options = config.get('datasets', [])
+                if self.dataset_options:
+                    self.default_dataset = self.dataset_options[0]
+                else:
+                    self.default_dataset = {
+                        'name': 'Default Dataset',
+                        'local_path': 'data/default_dataset.jsonl'
+                    }
+                
+                # 模型配置
+                self.model_options = config.get('models', [])
+            except Exception as e:
+                print(f"加载配置文件失败: {e}")
+                traceback.print_exc()
+                # 设置默认值
+                self.dataset_options = []
+                self.model_options = []
+                self.default_dataset = {
+                    'name': 'Default Dataset',
+                    'local_path': 'data/default_dataset.jsonl'
+                }
     
     def _load_local_dataset(self, path):
         """从本地路径加载数据集 - 简化版，支持JSONL"""
@@ -84,31 +121,36 @@ class TokenizerComparator:
                         except json.JSONDecodeError:
                             texts.append(line)
                 
-            except Exception:
+            except Exception as e:
+                print(f"加载JSONL文件失败: {e}")
                 return None
 
             return texts
 
         # 处理普通JSON文件
         elif os.path.isfile(path) and path.endswith('.json'):
-            with open(path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            # 处理数组格式的JSON
-            if isinstance(data, list):
-                for item in data:
-                    text = self._extract_text_from_json(item)
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                # 处理数组格式的JSON
+                if isinstance(data, list):
+                    for item in data:
+                        text = self._extract_text_from_json(item)
+                        if text:
+                            texts.append(text)
+                # 处理对象格式的JSON
+                elif isinstance(data, dict):
+                    text = self._extract_text_from_json(data)
                     if text:
                         texts.append(text)
-            # 处理对象格式的JSON
-            elif isinstance(data, dict):
-                text = self._extract_text_from_json(data)
-                if text:
-                    texts.append(text)
-            else:
+                else:
+                    return None
+                
+                return texts
+            except Exception as e:
+                print(f"加载JSON文件失败: {e}")
                 return None
-            
-            return texts
             
         # 处理其他文件格式（如TXT）
         elif os.path.isfile(path) and path.endswith('.txt'):
@@ -116,7 +158,8 @@ class TokenizerComparator:
                 with open(path, 'r', encoding='utf-8') as f:
                     texts = f.read().splitlines()
                 return texts
-            except Exception:
+            except Exception as e:
+                print(f"加载TXT文件失败: {e}")
                 return None
                 
         else:
@@ -192,6 +235,9 @@ class TokenizerComparator:
     
     def load_dataset_texts(self, dataset_index=0):
         """加载指定索引的数据集并返回文本列表"""
+        # 确保配置已加载
+        self.load_config()
+        
         if dataset_index < 0 or dataset_index >= len(self.dataset_options):
             return None
         
@@ -212,6 +258,9 @@ class TokenizerComparator:
     
     def load_tokenizers(self, selected_model_indices):
         """加载选定的 tokenizer (使用 tokenizers 库)"""
+        # 确保配置已加载
+        self.load_config()
+        
         successful_models = []
         for model_index in selected_model_indices:
             if model_index < 0 or model_index >= len(self.model_options):
@@ -256,16 +305,6 @@ class TokenizerComparator:
                     print(f"无法加载 {model_info['name']} 的 tokenizer")
                     continue
 
-                # 确保 tokenizer 必要的设置
-                # 例如，设置 pad_token 等（如果 tokenizer 没有默认设置）
-                # tokenizers 库的 Tokenizer 对象设置方式可能与 transformers 不同
-                # 如果需要，可以在这里添加配置，例如：
-                # if tokenizer.pad_token is None:
-                #     try:
-                #         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-                #     except Exception:
-                #         print(f"无法为 {model_info['name']} 添加 pad_token")
-
                 tokenizer.model_name = model_info['name']
                 self.tokenizers[model_index] = tokenizer
                 successful_models.append(model_index)
@@ -273,7 +312,6 @@ class TokenizerComparator:
             except Exception as e:
                 print(f"加载 {model_info['name']} 的 tokenizer 时出错: {e}")
                 # 打印更详细的错误信息有助于调试
-                import traceback
                 traceback.print_exc()
         return successful_models
     
@@ -338,6 +376,9 @@ class TokenizerComparator:
     
     def run(self):
         """运行比较工具"""
+        # 确保配置已加载
+        self.load_config()
+        
         print("="*60)
         print("       多模型Tokenizer对比分析工具")
         print("="*60)
@@ -404,12 +445,11 @@ class TokenizerComparator:
 if __name__ == "__main__":
     # 检查必要的库是否已安装
     try:
-        import transformers
         import yaml
         from tqdm import tqdm
     except ImportError as e:
         print(f"缺少必要的库: {e}")
-        print("请使用以下命令安装: pip install transformers yaml tqdm")
+        print("请使用以下命令安装: pip install yaml tqdm")
         sys.exit(1)
     
     # 使用配置文件

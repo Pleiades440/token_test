@@ -5,27 +5,27 @@ class TrainingTimeEstimator:
     def __init__(self, config_path="config.yaml"):
         # 加载配置文件
         self.config_path = config_path
-        self.model_configs = self.load_config()
+        self.model_configs = None  # 延迟加载
         
         # 默认使用华为昇腾910B显卡
         self.default_gpu = "华为昇腾910B"
-        
     
     def load_config(self):
-        """从YAML文件加载配置"""
-        try:
-            if not os.path.isabs(self.config_path):
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                config_path = os.path.join(current_dir, self.config_path)
-            else:
-                config_path = self.config_path
-            
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = yaml.safe_load(f)
+        """从YAML文件加载配置（延迟加载）"""
+        if self.model_configs is None:
+            try:
+                if not os.path.isabs(self.config_path):
+                    current_dir = os.path.dirname(os.path.abspath(__file__))
+                    config_path = os.path.join(current_dir, self.config_path)
+                else:
+                    config_path = self.config_path
                 
-            return config.get('models', [])
-        except Exception:
-            return []
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = yaml.safe_load(f)
+                    
+                self.model_configs = config.get('models', [])
+            except Exception:
+                self.model_configs = []
     
     def format_time(self, seconds):
         """将秒转换为天、小时、分钟、秒的格式"""
@@ -53,6 +53,9 @@ class TrainingTimeEstimator:
     
     def estimate_training_time(self, token_count, model_name, fine_tune_method, epochs):
         """估算训练时间"""
+        # 确保配置已加载
+        self.load_config()
+        
         # 查找模型配置
         model_config = None
         for config in self.model_configs:
@@ -73,8 +76,6 @@ class TrainingTimeEstimator:
         
         if throughput <= 0:
             raise ValueError(f"无效的吞吐量配置: {throughput}")
-        
-
         
         # 计算总token处理量
         total_tokens = token_count * epochs
@@ -151,6 +152,9 @@ class TrainingTimeEstimator:
     
     def run(self):
         """独立运行估算工具"""
+        # 确保配置已加载
+        self.load_config()
+        
         print("=" * 60)
         print("          深度学习训练时长估算工具")
         print("=" * 60)
