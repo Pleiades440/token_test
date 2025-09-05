@@ -39,14 +39,7 @@ def get_training_time_estimator():
     return _training_time_estimator
 
 def resource_path(relative_path):
-    """获取资源的绝对路径"""
-    # 首先检查当前目录下是否存在该文件
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    local_path = os.path.join(current_dir, relative_path)
-    if os.path.exists(local_path):
-        return local_path
-    
-    # 如果当前目录下不存在，则检查打包环境
+    """获取资源的绝对路径 - 只使用内置资源"""
     try:
         base_path = sys._MEIPASS
     except Exception:

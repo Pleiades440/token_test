@@ -6,14 +6,7 @@ import json
 from tqdm import tqdm
 
 def resource_path(relative_path):
-    """获取资源的绝对路径"""
-    # 首先检查当前目录下是否存在该文件
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    local_path = os.path.join(current_dir, relative_path)
-    if os.path.exists(local_path):
-        return local_path
-    
-    # 如果当前目录下不存在，则检查打包环境
+    """获取资源的绝对路径 - 只使用内置资源"""
     try:
         base_path = sys._MEIPASS
     except Exception:
@@ -27,7 +20,7 @@ def is_frozen():
 
 class TokenizerComparator:
     def __init__(self, config_path="config.yaml"):
-        # 处理配置文件路径
+        # 处理配置文件路径 - 只使用内置配置文件
         if is_frozen():
             config_path = resource_path(config_path)
         elif not os.path.isabs(config_path):
@@ -84,7 +77,7 @@ class TokenizerComparator:
     
     def _load_local_dataset(self, path):
         """从本地路径加载数据集 - 简化版，支持JSONL"""
-        # 处理路径
+        # 处理路径 - 只使用内置资源
         if is_frozen():
             path = resource_path(path)
         elif not os.path.isabs(path):
@@ -245,7 +238,7 @@ class TokenizerComparator:
         if "local_path" in dataset_info:
             local_path = dataset_info["local_path"]
             
-            # 处理路径
+            # 处理路径 - 只使用内置资源
             abs_local_path = resource_path(local_path)
             
             # 检查路径是否存在
@@ -426,6 +419,7 @@ class TokenizerComparator:
             # 显示结果
             self.display_results(results)
             return results
+            print()
         else:
             print("处理数据集时出错!")
             return None

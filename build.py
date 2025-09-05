@@ -1,8 +1,10 @@
 import os
+import sys
 import subprocess
 import shutil
 import time
 import stat
+import re
 
 def remove_readonly(func, path, excinfo):
     """处理只读文件的删除"""
@@ -27,6 +29,9 @@ def build_exe():
     # 获取项目根目录
     project_root = os.path.dirname(os.path.abspath(__file__))
     
+    # 清理旧文件
+
+    print("清理旧文件...")
     safe_remove('dist')
     safe_remove('build')
     safe_remove('TokenAnalyzer.spec')
@@ -106,27 +111,6 @@ def build_exe():
         
         # 清理临时数据目录
         safe_remove(temp_data_dir)
-        
-        # 在dist目录中创建一个外部配置文件（如果不存在）
-        external_config_path = os.path.join(dist_dir, 'config.yaml')
-        src_config_path = os.path.join(project_root, 'src', 'config.yaml')
-        
-        if os.path.exists(src_config_path) and not os.path.exists(external_config_path):
-            shutil.copy2(src_config_path, external_config_path)
-            print("已创建外部配置文件: config.yaml")
-            
-            # 创建说明文件，解释外部配置文件的使用
-            readme_path = os.path.join(dist_dir, 'README.txt')
-            with open(readme_path, 'w', encoding='utf-8') as f:
-                f.write('TokenAnalyzer 使用说明\n')
-                f.write('=====================\n\n')
-                f.write('1. 运行 TokenAnalyzer.exe 启动程序\n')
-                f.write('2. 如果需要修改配置，可以编辑同目录下的 config.yaml 文件\n')
-                f.write('3. 程序会优先使用外部的 config.yaml 文件\n')
-                f.write('4. 如果外部文件不存在，则使用内置的配置\n\n')
-                f.write('注意事项:\n')
-                f.write('- 确保系统已安装必要的运行时库\n')
-                f.write('- 程序可能需要几分钟时间加载模型\n')
         
         print("\n打包完成! 请查看dist目录中的TokenAnalyzer.exe")
         print("运行dist/TokenAnalyzer.exe来启动程序")

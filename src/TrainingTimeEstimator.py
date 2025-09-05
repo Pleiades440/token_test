@@ -1,9 +1,29 @@
 import yaml
 import os
+import sys
+
+def resource_path(relative_path):
+    """获取资源的绝对路径 - 只使用内置资源"""
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+
+def is_frozen():
+    """检查是否在打包环境中运行"""
+    return getattr(sys, 'frozen', False)
 
 class TrainingTimeEstimator:
     def __init__(self, config_path="config.yaml"):
-        # 加载配置文件
+        # 处理配置文件路径 - 只使用内置配置文件
+        if is_frozen():
+            config_path = resource_path(config_path)
+        elif not os.path.isabs(config_path):
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            config_path = os.path.join(current_dir, config_path)
+        
         self.config_path = config_path
         self.model_configs = None  # 延迟加载
         
@@ -14,7 +34,10 @@ class TrainingTimeEstimator:
         """从YAML文件加载配置（延迟加载）"""
         if self.model_configs is None:
             try:
-                if not os.path.isabs(self.config_path):
+                # 处理配置文件路径 - 只使用内置配置文件
+                if is_frozen():
+                    config_path = resource_path(self.config_path)
+                elif not os.path.isabs(self.config_path):
                     current_dir = os.path.dirname(os.path.abspath(__file__))
                     config_path = os.path.join(current_dir, self.config_path)
                 else:
@@ -141,9 +164,8 @@ class TrainingTimeEstimator:
                 )
                 
                 formatted_time = self.format_time(training_seconds)
-                print(f"{model_name:20s}: {formatted_time} "
-                      f"(GPU数量: {world_size}, 吞吐量: {throughput} tokens/sec/GPU, "
-                      f"总训练token数: {total_training_tokens:,})")
+                # 修改输出格式，移除吞吐量和总训练token数信息
+                print(f"{model_name:20s}: {formatted_time} (GPU数量: {world_size})")
                 
             except Exception as e:
                 print(f"{model_name:20s}: 估算错误 - {e}")
@@ -220,9 +242,6 @@ class TrainingTimeEstimator:
             print(f"微调方法: {method_display}")
             print(f"GPU类型: {self.default_gpu}")
             print(f"GPU数量: {world_size}")
-            print(f"吞吐量: {throughput} tokens/sec/GPU")
-            print(f"Token数量: {token_count:,.0f}")
-            print(f"Epoch数: {epochs}")
             print(f"预计训练时长: {formatted_time}")
             print("=" * 60)
             
