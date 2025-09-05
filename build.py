@@ -1,10 +1,8 @@
 import os
-import sys
 import subprocess
 import shutil
 import time
 import stat
-import re
 
 def remove_readonly(func, path, excinfo):
     """处理只读文件的删除"""

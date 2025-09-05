@@ -4,7 +4,6 @@ import yaml
 from tokenizers import Tokenizer
 import json
 from tqdm import tqdm
-import traceback
 
 def resource_path(relative_path):
     """获取资源的绝对路径"""
@@ -75,7 +74,6 @@ class TokenizerComparator:
                 self.model_options = config.get('models', [])
             except Exception as e:
                 print(f"加载配置文件失败: {e}")
-                traceback.print_exc()
                 # 设置默认值
                 self.dataset_options = []
                 self.model_options = []
@@ -282,16 +280,12 @@ class TokenizerComparator:
                         tokenizer = Tokenizer.from_file(tokenizer_json_path)
                     else:
                         # 如果本地没有 tokenizer.json，尝试从 Hugging Face 下载
-                        # 注意：tokenizers 库的 from_pretrained 可能不如 transformers 的 AutoTokenizer 全面
-                        # 这里尝试使用模型名在线加载，或者回退到其他方式
                         try:
-                            # 注意：tokenizers 库的 from_pretrained 可能不支持所有模型，特别是那些需要 trust_remote_code 的
                             if model_info.get('trust_remote_code', False):
                                 print(f"警告: tokenizers 库可能不支持 trust_remote_code，尝试加载 {model_info['name']} 可能失败。")
                             tokenizer = Tokenizer.from_pretrained(model_info['model_name'])
                         except Exception as e:
                             print(f"从网络加载 {model_info['name']} 的 tokenizer 失败: {e}")
-                            # 可以尝试其他方式，例如使用 transformers 库（如果必须）或者跳过
                             continue
                 else:
                     # 没有本地路径，尝试在线加载
@@ -308,11 +302,8 @@ class TokenizerComparator:
                 tokenizer.model_name = model_info['name']
                 self.tokenizers[model_index] = tokenizer
                 successful_models.append(model_index)
-                print(f"已加载 {model_info['name']} 的 tokenizer")
             except Exception as e:
                 print(f"加载 {model_info['name']} 的 tokenizer 时出错: {e}")
-                # 打印更详细的错误信息有助于调试
-                traceback.print_exc()
         return successful_models
     
     def process_dataset(self, dataset_texts, selected_model_indices):
@@ -343,9 +334,8 @@ class TokenizerComparator:
                         model_name = self.tokenizers[model_index].model_name
                         try:
                             # 使用 tokenizers 库的 encode 方法
-                            # 注意：tokenizers 库的 encode 方法返回一个 Encoding 对象
                             encoding = self.tokenizers[model_index].encode(text)
-                            results['models'][model_name]['total_tokens'] += len(encoding.tokens)  # 或者使用 encoding.ids 的长度
+                            results['models'][model_name]['total_tokens'] += len(encoding.tokens)
                         except Exception as e:
                             results['models'][model_name]['error_count'] += 1
                             print(f"处理文本时出错 ({model_name}): {e}")
@@ -409,7 +399,6 @@ class TokenizerComparator:
             all_model_idx = next((i for i, m in enumerate(self.model_options) if m.get('is_all_option', False)), -1)
             if all_model_idx != -1 and (all_model_idx + 1) in [int(c.strip()) for c in model_choices]:
                 selected_model_indices = [i for i, m in enumerate(self.model_options) if not m.get('is_all_option', False)]
-                print("已选择所有模型")
         except ValueError:
             print("请输入有效的数字!")
             return

@@ -6,7 +6,6 @@
 import sys
 import os
 import re
-import traceback
 
 # 添加当前目录到路径，确保可以导入模块
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +23,6 @@ def get_tokenizer_comparator():
             _tokenizer_comparator = TokenizerComparator()
         except Exception as e:
             print(f"加载 TokenizerComparator 失败: {e}")
-            traceback.print_exc()
             return None
     return _tokenizer_comparator
 
@@ -37,7 +35,6 @@ def get_training_time_estimator():
             _training_time_estimator = TrainingTimeEstimator()
         except Exception as e:
             print(f"加载 TrainingTimeEstimator 失败: {e}")
-            traceback.print_exc()
             return None
     return _training_time_estimator
 
@@ -173,7 +170,6 @@ def run_tokenizer_comparison():
     
     # 输出使用的数据集信息
     dataset_name = comparator.dataset_options[dataset_choice_idx]['name']
-    print(f"\n使用默认数据集: {dataset_name}")
     
     # 提供交互式模型选择
     print("\n请选择要比较的模型 (可多选，用逗号分隔):")
@@ -198,7 +194,6 @@ def run_tokenizer_comparison():
         all_model_idx = next((i for i, m in enumerate(comparator.model_options) if m.get('is_all_option', False)), -1)
         if all_model_idx != -1 and (all_model_idx + 1) in [int(c.strip()) for c in model_choices]:
             selected_model_indices = [i for i, m in enumerate(comparator.model_options) if not m.get('is_all_option', False)]
-            print("已选择所有模型")
     except ValueError:
         return None, None, None, None, None
     
@@ -206,23 +201,18 @@ def run_tokenizer_comparison():
         return None, None, None, None, None
     
     # 加载数据集文本
-    print("正在加载数据集...")
     dataset_texts = comparator.load_dataset_texts(dataset_choice_idx)
     if not dataset_texts:
         print("无法加载数据集!")
         return None, None, None, None, None
     
-    print(f"成功加载 {len(dataset_texts)} 个样本")
-    
     # 加载tokenizer
-    print("正在加载tokenizer...")
     successful_models = comparator.load_tokenizers(selected_model_indices)
     if not successful_models:
         print("未能加载任何tokenizer!")
         return None, None, None, None, None
     
     # 进行处理
-    print("开始处理数据集...")
     results = comparator.process_dataset(dataset_texts, successful_models)
     
     # 获取模型名称和总token数
@@ -255,7 +245,6 @@ def run_training_time_estimation(total_tokens_dict):
         estimator.running_train(total_tokens_dict)
     except Exception as e:
         print(f"训练时间估算出错: {e}")
-        traceback.print_exc()
 
 def main():
     """主函数，整合两个模块的功能"""
@@ -297,18 +286,6 @@ def main():
             # 显示缩放后的token数量
             print(f"\n目标数据集大小: {format_size_kb(target_dataset_size_kb)}")
             
-            # 如果选择了全部模型，只显示deepseek和qwen模型的token数量
-            if is_all_selected:
-                print("各模型在目标数据集上的估算token数量:")
-                for model_name, token_count in scaled_tokens_dict.items():
-                    if "deepseek" in model_name.lower() or "qwen" in model_name.lower():
-                        print(f"  {model_name}: {token_count:,} tokens")
-            else:
-                # 只显示选中的模型
-                print("各模型在目标数据集上的估算token数量:")
-                for model_name, token_count in scaled_tokens_dict.items():
-                    print(f"  {model_name}: {token_count:,} tokens")
-            
             # 运行训练时间估算
             run_training_time_estimation(scaled_tokens_dict)
             
@@ -318,7 +295,6 @@ def main():
                 
     except Exception as e:
         print(f"程序初始化失败: {e}")
-        traceback.print_exc()
         input("按任意键退出...")  # 等待用户按键，以便查看错误信息
 
 if __name__ == "__main__":
